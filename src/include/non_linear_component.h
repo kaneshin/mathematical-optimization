@@ -1,6 +1,8 @@
 #ifndef OPTIMIZATION_NON_LINEAR_COMPONENT_H
 #define OPTIMIZATION_NON_LINEAR_COMPONENT_H
 
+typedef unsigned int uint;
+
 enum NonLinearStatus {
     NON_LINEAR_FUNCTION_NAN = -1,
     NON_LINEAR_SATISFIED = 0,
@@ -8,8 +10,8 @@ enum NonLinearStatus {
 
 typedef struct _FunctionObject
 {
-    double (*function)(const double *, int);
-    void (*gradient)(double *, const double *, int);
+    double  (*function)(const double *, int);
+    void    (*gradient)(double *, const double *, int);
 } FunctionObject;
 
 typedef struct _NonLinearComponent

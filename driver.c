@@ -32,13 +32,9 @@ main(int argc, char* argv[])
 {
     int i, n;
     double *x, **b;
-
     FunctionObject Function;
 
     n = 2;
-    Function.function = function;
-    Function.gradient = gradient;
-
     x = (double *)malloc(sizeof(double) * n);
     b = (double **)malloc(sizeof(double *) * n);
     *b = (double *)malloc(sizeof(double) * n * n);
@@ -48,7 +44,10 @@ main(int argc, char* argv[])
     b[0][0] = 1.;   b[0][1] = -2.;
     b[1][0] = -2.;  b[1][1] = 6.;
 
-    quasi_newton_bfgs(x, NULL, n, &Function, NULL);
+    Function.function = function;
+    Function.gradient = gradient;
+
+    quasi_newton_bfgs(x, b, n, &Function, NULL);
 
     vector_delete(x);
     matrix_delete(b);

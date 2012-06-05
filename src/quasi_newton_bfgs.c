@@ -3,7 +3,7 @@
 /* ===========================================================================
  *  File: quasi_newton_bfgs
  *  Version: 0.9.0
- *  Last Change: 18-May-2012.
+ *  Last Change: 05-Jun-2012.
  *  Maintainer: Shintaro Kaneko <kaneshin0120@gmail.com>
  *  Description:
 =========================================================================== */
@@ -30,7 +30,7 @@
 #   define debug_printf 1 ? (void) 0 : printf
 #endif
 
-#define _OPTIMIZATION_SEARCH 4
+#define _OPTIMIZATION_SEARCH 5
 /*
  * Set _OPTIMIZATION_SEARCH
  *      1: armijo
