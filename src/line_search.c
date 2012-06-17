@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "include/mymath.h"
+#include "include/myvector.h"
 
 int
 line_search_armijo
