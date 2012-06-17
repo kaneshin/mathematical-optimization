@@ -21,7 +21,7 @@ main(int argc, char* argv[]) {
     double *x;
     FunctionObject Function;
 
-    n = 100;
+    n = 50;
     x = (double *)malloc(sizeof(double) * n);
 
     for (i = 0; i < n; i++) x[i] = 1.;
