@@ -3,7 +3,7 @@
 /* ===========================================================================
  *  File: line_search.c
  *  Version: 0.9.0
- *  Last Change: 18-May-2012.
+ *  Last Change: 18-Jun-2012.
  *  Maintainer: Shintaro Kaneko <kaneshin0120@gmail.com>
  *  Description:
 =========================================================================== */

@@ -46,5 +46,5 @@ int evaluate_function_gradient
     NonLinearComponent *component
 );
 
-#endif OPTIMIZATION_NON_LINEAR_COMPONENT_H
+#endif // OPTIMIZATION_NON_LINEAR_COMPONENT_H
 
