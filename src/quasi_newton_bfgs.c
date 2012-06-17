@@ -152,7 +152,7 @@ quasi_newton_bfgs
      *      QUASI_NEWTON_BFGS_SATISFIED
      *      QUASI_NEWTON_BFGS_OUT_OF_MEMORY
      */
-    int i, j, iteration, status;
+    int i, iteration, status;
     double *storage, *storage_x, **storage_b,
            *d, *g, *x_temp, *g_temp, *s, *y,
            g_norm;
