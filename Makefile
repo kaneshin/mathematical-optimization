@@ -8,42 +8,39 @@
 
 CC = gcc
 CFLAGS = -Wall -O3
+_SRCS = quasi_newton_bfgs.c\
+	line_search.c\
+	non_linear_component.c\
+	mymath.c\
+	myvector.c\
+	mymatrix.c
+_OBJS = $(_SRCS:%.c=%.o)
+SRCDIR = src
+OBJDIR = bin
+SRCS = $(patsubst %,$(SRCDIR)/%,$(_SRCS))
+OBJS = $(patsubst %,$(OBJDIR)/%,$(_OBJS))
+PROGS = driver1 driver2
 
-all: driver1 driver2 mv
+all: $(PROGS)
 
-driver1: quasi_newton_bfgs.o line_search.o non_linear_component.o mymath.o myvector.o mymatrix.o driver1.o
-	$(CC) $(CFLAGS) quasi_newton_bfgs.o line_search.o non_linear_component.o mymath.o myvector.o mymatrix.o driver1.o -o driver1 -lm
+#####	drivers
+driver%: $(OBJDIR)/driver%.o $(OBJS)
+	$(CC) $(CFLAGS) $^ -o $@ -lm
 
-driver2: quasi_newton_bfgs.o line_search.o non_linear_component.o mymath.o myvector.o mymatrix.o driver2.o
-	$(CC) $(CFLAGS) quasi_newton_bfgs.o line_search.o non_linear_component.o mymath.o myvector.o mymatrix.o driver2.o -o driver2 -lm
+$(OBJDIR)/driver%.o: driver%.c $(OBJDIR)/quasi_newton_bfgs.o $(OBJDIR)/non_linear_component.o
+	$(CC) -c $< -o $@
 
-driver1.o: driver1.c quasi_newton_bfgs.o non_linear_component.o
-	$(CC) -c driver1.c
+#####	objects
+$(OBJDIR)/quasi_newton_bfgs.o: $(SRCDIR)/quasi_newton_bfgs.c $(OBJDIR)/line_search.o $(OBJDIR)/non_linear_component.o $(OBJDIR)/mymath.o $(OBJDIR)/myvector.o $(OBJDIR)/mymatrix.o
+	$(CC) -c $< -o $@
 
-driver2.o: driver2.c quasi_newton_bfgs.o non_linear_component.o
-	$(CC) -c driver2.c
+$(OBJDIR)/line_search.o: $(SRCDIR)/line_search.c $(OBJDIR)/non_linear_component.o $(OBJDIR)/myvector.o
+	$(CC) -c $< -o $@
 
-quasi_newton_bfgs.o: src/quasi_newton_bfgs.c line_search.o non_linear_component.o mymath.o myvector.o mymatrix.o
-	$(CC) -c src/quasi_newton_bfgs.c
+$(OBJDIR)/%.o: $(SRCDIR)/%.c
+	$(CC) -c $< -o $@
 
-line_search.o: src/line_search.c non_linear_component.o mymath.o
-	$(CC) -c src/line_search.c
-
-non_linear_component.o: src/non_linear_component.c
-	$(CC) -c $^
-
-mymath.o: src/mymath.c
-	$(CC) -c $^
-
-myvector.o: src/myvector.c
-	$(CC) -c $^
-
-mymatrix.o: src/mymatrix.c
-	$(CC) -c $^
-
-mv:
-	mv *.o bin
-
+#####	post-processor
 clean:
-	rm -vf bin/*.o driver1 driver2
+	rm -vf $(OBJS) $(PROGS)
 
