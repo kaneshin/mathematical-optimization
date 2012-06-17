@@ -27,14 +27,8 @@ all: $(PROGS)
 driver%: $(OBJDIR)/driver%.o $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 
-$(OBJDIR)/driver%.o: driver%.c $(OBJDIR)/quasi_newton_bfgs.o $(OBJDIR)/non_linear_component.o
-	$(CC) -c $< -o $@
-
 #####	objects
-$(OBJDIR)/quasi_newton_bfgs.o: $(SRCDIR)/quasi_newton_bfgs.c $(OBJDIR)/line_search.o $(OBJDIR)/non_linear_component.o $(OBJDIR)/mymath.o $(OBJDIR)/myvector.o $(OBJDIR)/mymatrix.o
-	$(CC) -c $< -o $@
-
-$(OBJDIR)/line_search.o: $(SRCDIR)/line_search.c $(OBJDIR)/non_linear_component.o $(OBJDIR)/myvector.o
+$(OBJDIR)/driver%.o: driver%.c
 	$(CC) -c $< -o $@
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
