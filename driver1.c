@@ -3,7 +3,7 @@
  *
  * File:        driver1.c
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 20-Jun-2012.
+ * Last Change: 21-Jun-2012.
  *
  * Problem:
  * 	minimize f(x) = (x1 - x2^2)^2 / 2 + (x2 - 2)^2 / 2
@@ -20,6 +20,8 @@
 #include <stdlib.h>
 
 #include "src/include/quasi_newton_bfgs.h"
+#include "src/include/line_search.h"
+#include "src/include/backtracking_wolfe.h"
 #include "src/include/non_linear_component.h"
 
 static double
@@ -47,7 +49,7 @@ main(int argc, char* argv[]) {
     Function.function = function;
     Function.gradient = gradient;
 
-    quasi_newton_bfgs(x, b, n, &Function, NULL);
+    quasi_newton_bfgs(x, b, n, &Function, NULL, backtracking_wolfe, NULL);
 
     if (NULL != x) {
         free(x);

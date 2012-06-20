@@ -3,7 +3,7 @@
  *
  * File:        driver2.c
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 20-Jun-2012.
+ * Last Change: 21-Jun-2012.
  *
  * Problem:
  * 	minimize f(x) =
@@ -19,6 +19,8 @@
 #include <math.h>
 
 #include "src/include/quasi_newton_bfgs.h"
+#include "src/include/line_search.h"
+#include "src/include/backtracking_wolfe.h"
 #include "src/include/non_linear_component.h"
 
 static double
@@ -33,7 +35,7 @@ main(int argc, char* argv[]) {
     double *x;
     FunctionObject Function;
 
-    n = 50;
+    n = 100;
     x = (double *)malloc(sizeof(double) * n);
 
     for (i = 0; i < n; ++i) x[i] = 1.;
@@ -41,7 +43,7 @@ main(int argc, char* argv[]) {
     Function.function = function;
     Function.gradient = gradient;
 
-    quasi_newton_bfgs(x, NULL, n, &Function, NULL);
+    quasi_newton_bfgs(x, NULL, n, &Function, NULL, backtracking_wolfe, NULL);
 
     if (NULL != x) {
         free(x);
