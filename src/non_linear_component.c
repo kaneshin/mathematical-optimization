@@ -1,12 +1,14 @@
-// vim:set ts=8 sts=4 sw=4 tw=0:
-// vim:set foldmethod=marker foldmarker={{{,}}}:
-/* ===========================================================================
- *  File: non_linear_component.c
- *  Version: 0.9.0
- *  Last Change: 18-May-2012.
- *  Maintainer: Shintaro Kaneko <kaneshin0120@gmail.com>
- *  Description:
-=========================================================================== */
+/*
+ * vim:set ts=8 sts=4 sw=4 tw=0:
+ *
+ * File:        non_linear_component.c
+ * Version:     0.1.0
+ * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
+ * Last Change: 21-Jun-2012.
+ * TODO:
+ *  Put static to evaluate functions - Use pointer
+ *
+ */
 
 #include "include/non_linear_component.h"
 
