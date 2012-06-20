@@ -1,69 +1,23 @@
-// vim:set ts=8 sts=4 sw=4 tw=0:
-// vim:set foldmethod=marker foldmarker={{{,}}}:
-/* ===========================================================================
- *  File: quasi_newton_bfgs
- *  Version: 0.9.0
- *  Last Change: 18-Jun-2012.
- *  Maintainer: Shintaro Kaneko <kaneshin0120@gmail.com>
- *  Description:
-=========================================================================== */
+/*
+ * vim:set ts=8 sts=4 sw=4 tw=0:
+ *
+ * File:        quasi_newton_bfgs.c
+ * Version:     0.1.0
+ * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
+ * Last Change: 21-Jun-2012.
+ */
 
 #include "include/quasi_newton_bfgs.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "include/line_search.h"
+#include "include/backtracking_wolfe.h"
 #include "include/mymath.h"
 #include "include/myvector.h"
 #include "include/mymatrix.h"
 
-#define DEBUG 0
-/*
- * Switch Debug mode
- *      0: OFF
- *      1: ON
- */
-#if DEBUG
-#   define debug_printf printf
-#else
-#   define debug_printf 1 ? (void) 0 : printf
-#endif
-
-#define _OPTIMIZATION_SEARCH 4
-/*
- * Set _OPTIMIZATION_SEARCH
- *      1: armijo
- *      2: wolfe
- *      3: strong wolfe
- *      4: backtracking wolfe
- *      5: backtracking storng wolfe
- */
-#if _OPTIMIZATION_SEARCH == 1
-#   define _OPTIMIZATION_LINESEARCH \
-        line_search_armijo(x, g, d, n, 1., .5, .5, &component)
-#elif _OPTIMIZATION_SEARCH == 2
-#   define _OPTIMIZATION_LINESEARCH \
-        line_search_wolfe(x, g, d, n, 1., .5, .001, .2, &component)
-#elif _OPTIMIZATION_SEARCH == 3
-#   define _OPTIMIZATION_LINESEARCH \
-        line_search_strong_wolfe(x, g, d, n, 1., .5, .001, .2, &component)
-#elif _OPTIMIZATION_SEARCH == 4
-#   define _OPTIMIZATION_LINESEARCH \
-        line_search_backtracking_wolfe(x, g, d, n, 1., .5, .001, .2,\
-                parameter->decreasing, parameter->increasing, &component)
-#elif _OPTIMIZATION_SEARCH == 5
-#   define _OPTIMIZATION_LINESEARCH \
-        line_search_backtracking_strong_wolfe(x, g, d, n, 1., .5, .001, .2,\
-                parameter->decreasing, parameter->increasing, &component)
-#endif
-
 #define _OPTIMIZATION_FORMULA 2
-/*
- * Set _OPTIMIZATION_FORMULA
- *      1: B formula
- *      2: H formula
- */
 #if _OPTIMIZATION_FORMULA == 1
 #   define _OPTIMIZATION_DIRECTION_SEARCH_BFGS \
         direction_search_B_formula(d, b, g, n)
@@ -76,26 +30,31 @@
         update_bfgs_H_formula(b, s, y, x, n)
 #endif
 
-static void quasi_newton_bfgs_parameter_default
-(
+static void
+default_quasi_newton_bfgs_parameter(
     QuasiNewtonBFGSParameter *parameter
 );
 
-static void initialize_quasi_newton_bfgs
-(
+static void
+default_line_search_parameter(
+    LineSearchParameter *parameter
+);
+
+static void
+initialize_quasi_newton_bfgs(
     NonLinearComponent *component
 );
 
-static int direction_search_B_formula
-(
+static int
+direction_search_B_formula(
     double *d,
     double **B,
     double *g,
     int n
 );
 
-static int update_bfgs_B_formula
-(
+static int
+update_bfgs_B_formula(
     double **B,
     const double *s,
     const double *y,
@@ -103,16 +62,16 @@ static int update_bfgs_B_formula
     int n
 );
 
-static int direction_search_H_formula
-(
+static int
+direction_search_H_formula(
     double *d,
     double **H,
     const double *g,
     int n
 );
 
-static int update_bfgs_H_formula
-(
+static int
+update_bfgs_H_formula(
     double **H,
     const double *s,
     const double *y,
@@ -120,47 +79,42 @@ static int update_bfgs_H_formula
     int n
 );
 
-static void print_iteration_info
-(
+static void
+print_iteration_info(
     int iteration,
     double g_norm,
     NonLinearComponent *component
 );
 
-static void print_result_info
-(
+static void
+print_result_info(
     int status,
     int iteration,
     NonLinearComponent *component
 );
 
-/*
- * quasi-Newton method (BFGS)
- */
 int
-quasi_newton_bfgs
-(
+quasi_newton_bfgs(
     double *x,
     double **b,
     int n,
     FunctionObject *function_object,
-    QuasiNewtonBFGSParameter *parameter
-)
-{
-    /*
-     * Return:
-     *      QUASI_NEWTON_BFGS_SATISFIED
-     *      QUASI_NEWTON_BFGS_OUT_OF_MEMORY
-     */
+    QuasiNewtonBFGSParameter *quasi_newton_bfgs_parameter,
+    int (*line_search)(double *, double *, double *, int,
+        LineSearchParameter *, NonLinearComponent *
+    ),
+    LineSearchParameter *line_search_parameter
+) {
     int i, iteration, status;
     double *storage, *storage_x, **storage_b,
            *d, *g, *x_temp, *g_temp, *s, *y,
            g_norm;
-    QuasiNewtonBFGSParameter _parameter;
+    QuasiNewtonBFGSParameter _quasi_newton_bfgs_parameter;
+    LineSearchParameter _line_search_parameter;
     NonLinearComponent component;
 
     if (NULL == x) {
-        // allocate memory to x as a vector
+        /* allocate memory to storage_x */
         if (NULL == (storage_x = (double *)malloc(sizeof(double) * n))) {
             status = QUASI_NEWTON_BFGS_OUT_OF_MEMORY;
             goto result;
@@ -171,7 +125,7 @@ quasi_newton_bfgs
         storage_x = NULL;
     }
     if (NULL == b) {
-        // allocate memory to b as a matrix
+        /* allocate memory to storage_b */
         if (NULL == (storage_b = (double **)malloc(sizeof(double *) * n))) {
             status = QUASI_NEWTON_BFGS_OUT_OF_MEMORY;
             goto result;
@@ -180,7 +134,7 @@ quasi_newton_bfgs
             status = QUASI_NEWTON_BFGS_OUT_OF_MEMORY;
             goto result;
         }
-        for (i = 1; i < n; i++) {
+        for (i = 1; i < n; ++i) {
             storage_b[i] = storage_b[i - 1] + n;
         }
         identity_matrix(storage_b, n);
@@ -188,18 +142,29 @@ quasi_newton_bfgs
     } else {
         storage_b = NULL;
     }
-    // allocate memory to storage for d, g, xtemp, gtemp, s and y
+    /* allocate memory to storage for d, g, x_temp, g_temp, s and y */
     if (NULL == (storage = (double *)malloc(sizeof(double) * n * 6))) {
         status = QUASI_NEWTON_BFGS_OUT_OF_MEMORY;
         goto result;
     }
-    y = (s = (g_temp = (x_temp = (g = (d = storage) + n) + n) + n) + n) + n;
+    d = storage;
+    g = d + n;
+    x_temp = g + n;
+    g_temp = x_temp + n;
+    s = g_temp + n;
+    y = s + n;
 
-    if (NULL == parameter) {
-        parameter = &_parameter;
-        quasi_newton_bfgs_parameter_default(parameter);
+    // TODO: Check elements of parameter
+    if (NULL == quasi_newton_bfgs_parameter) {
+        quasi_newton_bfgs_parameter = &_quasi_newton_bfgs_parameter;
+        default_quasi_newton_bfgs_parameter(quasi_newton_bfgs_parameter);
+    }
+    if (NULL == line_search_parameter) {
+        line_search_parameter = &_line_search_parameter;
+        default_line_search_parameter(line_search_parameter);
     }
 
+    // TODO: Check each function of function_object
     if (NULL == function_object) {
         status = QUASI_NEWTON_BFGS_NON_FUNCTION;
         goto result;
@@ -212,12 +177,12 @@ quasi_newton_bfgs
         status = QUASI_NEWTON_BFGS_FUNCTION_NAN;
         goto result;
     }
-    for (iteration = 1; iteration < parameter->max_iteration; iteration++) {
+    for (iteration = 1; iteration < quasi_newton_bfgs_parameter->max_iteration; iteration++) {
         // search a direction of descent
         status = _OPTIMIZATION_DIRECTION_SEARCH_BFGS;
         if (status) goto result;
         // compute step width with a line search algorithm
-        switch (_OPTIMIZATION_LINESEARCH) {
+        switch (line_search(x, g, d, n, line_search_parameter, &component)) {
             case LINE_SEARCH_FUNCTION_NAN:
                 status = QUASI_NEWTON_BFGS_FUNCTION_NAN;
                 goto result;
@@ -238,12 +203,12 @@ quasi_newton_bfgs
 
         print_iteration_info(iteration, g_norm, &component);
 
-        if (g_norm < parameter->tolerance) {
+        if (g_norm < quasi_newton_bfgs_parameter->tolerance) {
             status = QUASI_NEWTON_BFGS_SATISFIED;
             goto result;
         }
 
-        for (i = 0; i < n; i++) {
+        for (i = 0; i < n; ++i) {
             s[i] = x_temp[i] - x[i];
             y[i] = g_temp[i] - g[i];
         }
@@ -257,8 +222,10 @@ quasi_newton_bfgs
                 break;
         }
 
-        copy_vector(x, x_temp, n);
-        copy_vector(g, g_temp, n);
+        for (i = 0; i < n; ++i) {
+            x[i] = x_temp[i];
+            g[i] = g_temp[i];
+        }
     }
 
 result:
@@ -273,64 +240,62 @@ result:
     return status;
 }
 
-void
-quasi_newton_bfgs_parameter_default
-(
+static void
+default_quasi_newton_bfgs_parameter(
     QuasiNewtonBFGSParameter *parameter
-)
-{
-    parameter->tolerance = 1.e-9;
-    parameter->max_iteration = 1070;
-    parameter->step_width = 1.;
-    parameter->xi = 0.001;
-    parameter->tau = .5;
-    parameter->sigma = .2;
-    parameter->decreasing = .5;
-    parameter->increasing = 2.1;
+) {
+    parameter->tolerance        = 1.e-7;
+    parameter->max_iteration    = 3000;
 }
 
-void
-initialize_quasi_newton_bfgs
-(
+static void
+default_line_search_parameter(
+    LineSearchParameter *parameter
+) {
+    parameter->step_width       = 1.;
+    parameter->xi               = 0.001;
+    parameter->tau              = .5;
+    parameter->sigma            = .2;
+    parameter->decreasing       = .5;
+    parameter->increasing       = 2.1;
+}
+
+static void
+initialize_quasi_newton_bfgs(
     NonLinearComponent *component
-)
-{
+) {
     component->alpha = 0.;
     component->iteration_f  = 0;
     component->iteration_g  = 0;
 }
 
-int
-direction_search_B_formula
-(
+static int
+direction_search_B_formula(
     double *d,
     double **B,
     double *g,
     int n
-)
-{
+) {
     /*
      * Search the direction on B formula
      * Return: d: Bd = -g
      */
     int i , status;
 
-    for (i = 0; i < n; i++) g[i] = -g[i];
+    for (i = 0; i < n; ++i) g[i] = -g[i];
     status = successive_over_relaxation(B, d, g, n, 1.e-7, 0.5);
-    for (i = 0; i < n; i++) g[i] = -g[i];
+    for (i = 0; i < n; ++i) g[i] = -g[i];
     return status;
 }
 
-int
-update_bfgs_B_formula
-(
+static int
+update_bfgs_B_formula(
     double **B,
     const double *s,
     const double *y,
     double *Bs,
     int n
-)
-{
+) {
     /*
      * Update the matrix on B formula
      * Return:
@@ -338,7 +303,7 @@ update_bfgs_B_formula
     int i, j;
     double temp, sBs, sy;
 
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < n; ++i) {
         temp = 0.;
         for (j = 0; j < n; j++) {
             temp += B[i][j] * s[j];
@@ -349,7 +314,7 @@ update_bfgs_B_formula
     sBs = dot_product(s, Bs, n);
     sy = dot_product(s, y, n);
     if (sy > 0) {
-        for (i = 0; i < n; i++) {
+        for (i = 0; i < n; ++i) {
             for (j = 0; j < n; j++) {
                 B[i][j] += - Bs[i] * Bs[j] / sBs + y[i] * y[j] / sy;
             }
@@ -359,22 +324,20 @@ update_bfgs_B_formula
     return QUASI_NEWTON_BFGS_NOT_UPDATE;
 }
 
-int
-direction_search_H_formula
-(
+static int
+direction_search_H_formula(
     double *d,
     double **H,
     const double *g,
     int n
-)
-{
+) {
     /*
      * Search the direction on H formula
      * Return: d: d = -Hg
      */
     int i, j;
     double temp;
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < n; ++i) {
         temp = 0.;
         for (j = 0; j < n; j++) {
             temp -= H[i][j] * g[j];
@@ -385,16 +348,14 @@ direction_search_H_formula
     return QUASI_NEWTON_BFGS_SATISFIED;
 }
 
-int
-update_bfgs_H_formula
-(
+static int
+update_bfgs_H_formula(
     double **H,
     const double *s,
     const double *y,
     double *Hy,
     int n
-)
-{
+) {
     /*
      * Update the matrix on H formula
      * Return:
@@ -402,7 +363,7 @@ update_bfgs_H_formula
     int i, j;
     double temp, yHy, sy;
 
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < n; ++i) {
         temp = 0.;
         for (j = 0; j < n; j++) {
             temp += H[i][j] * y[j];
@@ -413,7 +374,7 @@ update_bfgs_H_formula
     yHy = dot_product(y, Hy, n);
     sy = dot_product(s, y, n);
     if (sy > 0) {
-        for (i = 0; i < n; i++) {
+        for (i = 0; i < n; ++i) {
             for (j = 0; j < n; j++) {
                 H[i][j] += - (Hy[i] * s[j] + s[i] * Hy[j]) / sy
                                 + (1 + yHy / sy) * s[i] * s[j] / sy ;
@@ -424,14 +385,12 @@ update_bfgs_H_formula
     return QUASI_NEWTON_BFGS_NOT_UPDATE;
 }
 
-void
-print_iteration_info
-(
+static void
+print_iteration_info(
     int iteration,
     double g_norm,
     NonLinearComponent *component
-)
-{
+) {
     printf("\n == iteration: %7d ================================\n", iteration);
     printf("step width parameter:  \t%13.6e\n", component->alpha);
     printf("-------------------------------------------------------\n");
@@ -440,14 +399,12 @@ print_iteration_info
     printf("-------------------------------------------------------\n");
 }
 
-void
-print_result_info
-(
+static void
+print_result_info(
     int status,
     int iteration,
     NonLinearComponent *component
-)
-{
+) {
     printf("\n == Result ==\n");
     printf("Compute status: %3d\n", status);
     switch (status) {
@@ -478,4 +435,26 @@ print_result_info
         printf("function value:      \t%13.6e\n", component->f);
     }
 }
+
+#if 0
+#define _OPTIMIZATION_SEARCH 4
+#if _OPTIMIZATION_SEARCH == 1
+#   define _OPTIMIZATION_LINESEARCH \
+        line_search_armijo(x, g, d, n, 1., .5, .5, &component)
+#elif _OPTIMIZATION_SEARCH == 2
+#   define _OPTIMIZATION_LINESEARCH \
+        line_search_wolfe(x, g, d, n, 1., .5, .001, .2, &component)
+#elif _OPTIMIZATION_SEARCH == 3
+#   define _OPTIMIZATION_LINESEARCH \
+        line_search_strong_wolfe(x, g, d, n, 1., .5, .001, .2, &component)
+#elif _OPTIMIZATION_SEARCH == 4
+#   define _OPTIMIZATION_LINESEARCH \
+        line_search_backtracking_wolfe(x, g, d, n, 1., .5, .001, .2,\
+                parameter->decreasing, parameter->increasing, &component)
+#elif _OPTIMIZATION_SEARCH == 5
+#   define _OPTIMIZATION_LINESEARCH \
+        line_search_backtracking_strong_wolfe(x, g, d, n, 1., .5, .001, .2,\
+                parameter->decreasing, parameter->increasing, &component)
+#endif
+#endif
 
