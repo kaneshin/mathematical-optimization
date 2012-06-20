@@ -1,8 +1,8 @@
 # vim:set ts=8 sts=4 sw=4 tw=0:
 #
-# File:        Makefile
-# Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
-# Last Change: 18-Jun-2012.
+# File:         Makefile
+# Maintainer:   Shintaro Kaneko <kaneshin0120@gmail.com>
+# Last Change:  20-Jun-2012.
 #
 # Makefile for drivers
 
