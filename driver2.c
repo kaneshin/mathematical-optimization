@@ -1,9 +1,18 @@
 /*
  * vim:set ts=8 sts=4 sw=4 tw=0:
  *
- * File:	driver2.c
- * Maintainer:	Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change:	18-Jun-2012.
+ * File:        driver2.c
+ * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
+ * Last Change: 20-Jun-2012.
+ *
+ * Problem:
+ * 	minimize f(x) =
+ * 		sum[i=1 to n] {e^x_i - x_i * sqrt(i + 1)}
+ *
+ * 	gradient f(x) = [
+ * 		gf(x)_i = e^x_i - sqrt(i + 1)
+ * 	]
+ *
  */
 
 #include <stdlib.h>
@@ -12,8 +21,11 @@
 #include "src/include/quasi_newton_bfgs.h"
 #include "src/include/non_linear_component.h"
 
-static double function(const double *x, int n);
-static void gradient(double *g, const double *x, int n);
+static double
+function(const double *x, int n);
+
+static void
+gradient(double *g, const double *x, int n);
 
 int
 main(int argc, char* argv[]) {
@@ -24,7 +36,7 @@ main(int argc, char* argv[]) {
     n = 50;
     x = (double *)malloc(sizeof(double) * n);
 
-    for (i = 0; i < n; i++) x[i] = 1.;
+    for (i = 0; i < n; ++i) x[i] = 1.;
 
     Function.function = function;
     Function.gradient = gradient;
@@ -39,21 +51,21 @@ main(int argc, char* argv[]) {
     return 0;
 }
 
-double
+static double
 function(const double *x, int n) {
     int i;
     double f = 0.;
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < n; ++i) {
         f += exp(x[i]) - x[i] * sqrt(i + 1.);
     }
     return f;
 }
 
-void
+static void
 gradient(double *g, const double *x, int n) {
     int i;
-    for (i = 0; i < n; i++) {
-        g [i] = exp(x [i]) - sqrt (i + 1.);
+    for (i = 0; i < n; ++i) {
+        g[i] = exp(x[i]) - sqrt(i + 1.);
     }
 }
 
