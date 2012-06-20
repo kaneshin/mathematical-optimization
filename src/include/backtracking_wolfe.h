@@ -2,7 +2,7 @@
 #define OPTIMIZATION_LINE_SEARCH_BACKTRACKING_WOLFE_H
 
 #include "non_linear_component.h"
-#include "line_search.h"
+#include "line_search_component.h"
 
 int
 backtracking_wolfe(

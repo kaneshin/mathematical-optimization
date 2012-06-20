@@ -20,7 +20,7 @@
 #include <stdlib.h>
 
 #include "src/include/quasi_newton_bfgs.h"
-#include "src/include/line_search.h"
+#include "src/include/line_search_component.h"
 #include "src/include/backtracking_wolfe.h"
 #include "src/include/non_linear_component.h"
 

@@ -2,7 +2,7 @@
 #define OPTIMIZATION_QUASI_NEWTON_BFGS_H
 
 #include "non_linear_component.h"
-#include "line_search.h"
+#include "line_search_component.h"
 
 enum QuasiNewtonBFGSStatus {
     QUASI_NEWTON_BFGS_FUNCTION_NAN = -5,
