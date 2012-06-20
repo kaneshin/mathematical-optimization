@@ -2,14 +2,14 @@
 #
 # File:         Makefile
 # Maintainer:   Shintaro Kaneko <kaneshin0120@gmail.com>
-# Last Change:  20-Jun-2012.
+# Last Change:  21-Jun-2012.
 #
 # Makefile for drivers
 
 CC = gcc
 CFLAGS = -Wall -O3
 _SRCS = quasi_newton_bfgs.c\
-	line_search.c\
+	backtracking_wolfe.c\
 	non_linear_component.c\
 	mymath.c\
 	myvector.c\
