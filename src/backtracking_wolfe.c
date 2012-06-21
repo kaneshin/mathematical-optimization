@@ -4,8 +4,7 @@
  * File:        backtracking_wolfe.c
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 21-Jun-2012.
- *
+ * Last Change: 22-Jun-2012.
  */
 
 #include "include/backtracking_wolfe.h"
@@ -25,10 +24,11 @@ backtracking_wolfe(
     NonLinearComponent *component
 ) {
     int i;
-    double width, beta, f_x, gd, *x_temp, *g_temp;
+    double width, beta, f_x, gd, *x_temp, *g_temp, *storage;
 
-    x_temp = (double *)malloc(sizeof(double) * n);
-    g_temp = (double *)malloc(sizeof(double) * n);
+    storage = (double *)malloc(sizeof(double) * 2 * n);
+    x_temp = storage;
+    g_temp = x_temp + n;
 
     width = line_search_parameter->tau;
     beta = line_search_parameter->step_width > 0. ? line_search_parameter->step_width : 1.;
@@ -37,7 +37,7 @@ backtracking_wolfe(
     }
     f_x = component->f;
     gd = dot_product(g, d, n);
-    for (i = 0; i < 10000; ++i) {
+    for (i = 0; i < 20000; ++i) {
         update_step_vector(x_temp, x, beta, d, n);
         if (NON_LINEAR_FUNCTION_NAN == evaluate_function(x_temp, n, component)) {
             return LINE_SEARCH_FUNCTION_NAN;
@@ -46,8 +46,10 @@ backtracking_wolfe(
             evaluate_gradient(g_temp, x_temp, n, component);
             if (line_search_parameter->sigma * gd <= dot_product(g_temp, d, n)) {
                 component->alpha = beta;
-                free(x_temp);
-                free(g_temp);
+                if (NULL != storage) {
+                    free(storage);
+                    storage = NULL;
+                }
                 return LINE_SEARCH_SATISFIED;
             } else {
                 width = line_search_parameter->increasing;
@@ -57,8 +59,10 @@ backtracking_wolfe(
         }
         beta *= width;
     }
-    free(x_temp);
-    free(g_temp);
+    if (NULL != storage) {
+        free(storage);
+        storage = NULL;
+    }
     return LINE_SEARCH_FAILED;
 }
 
