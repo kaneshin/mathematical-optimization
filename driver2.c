@@ -3,7 +3,7 @@
  *
  * File:        driver2.c
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 21-Jun-2012.
+ * Last Change: 22-Jun-2012.
  *
  * Problem:
  * 	minimize f(x) =
@@ -12,7 +12,6 @@
  * 	gradient f(x) = [
  * 		gf(x)_i = e^x_i - sqrt(i + 1)
  * 	]
- *
  */
 
 #include <stdlib.h>
@@ -43,7 +42,7 @@ main(int argc, char* argv[]) {
     Function.function = function;
     Function.gradient = gradient;
 
-    quasi_newton_bfgs(x, NULL, n, &Function, NULL, backtracking_wolfe, NULL);
+    quasi_newton_bfgs(x, NULL, n, &Function, NULL, 'h', NULL, backtracking_wolfe);
 
     if (NULL != x) {
         free(x);

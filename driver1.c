@@ -3,7 +3,7 @@
  *
  * File:        driver1.c
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 21-Jun-2012.
+ * Last Change: 22-Jun-2012.
  *
  * Problem:
  * 	minimize f(x) = (x1 - x2^2)^2 / 2 + (x2 - 2)^2 / 2
@@ -14,7 +14,6 @@
  * 	]
  *
  * 	x* = [ 4, 2 ]^T
- *
  */
 
 #include <stdlib.h>
@@ -49,7 +48,7 @@ main(int argc, char* argv[]) {
     Function.function = function;
     Function.gradient = gradient;
 
-    quasi_newton_bfgs(x, b, n, &Function, NULL, backtracking_wolfe, NULL);
+    quasi_newton_bfgs(x, b, n, &Function, NULL, 'h', NULL, backtracking_wolfe);
 
     if (NULL != x) {
         free(x);
