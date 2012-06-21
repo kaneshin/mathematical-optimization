@@ -1,3 +1,12 @@
+/*
+ * vim:set ts=8 sts=4 sw=4 tw=0:
+ *
+ * File:        backtracking_wolfe.h
+ * Version:     0.1.0
+ * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
+ * Last Change: 22-Jun-2012.
+ */
+
 #ifndef OPTIMIZATION_LINE_SEARCH_BACKTRACKING_WOLFE_H
 #define OPTIMIZATION_LINE_SEARCH_BACKTRACKING_WOLFE_H
 

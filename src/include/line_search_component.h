@@ -1,5 +1,14 @@
-#ifndef OPTIMIZATION_LINE_SEARCH_H
-#define OPTIMIZATION_LINE_SEARCH_H
+/*
+ * vim:set ts=8 sts=4 sw=4 tw=0:
+ *
+ * File:        line_search_component.h
+ * Version:     0.1.0
+ * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
+ * Last Change: 22-Jun-2012.
+ */
+
+#ifndef OPTIMIZATION_LINE_SEARCH_COMPONENT_H
+#define OPTIMIZATION_LINE_SEARCH_COMPONENT_H
 
 enum LineSearchStatus {
     LINE_SEARCH_FUNCTION_NAN = -1,
@@ -9,8 +18,6 @@ enum LineSearchStatus {
 };
 
 typedef struct _LineSearchParameter {
-    double tolerance;
-    int max_iteration;
     double step_width;
     double xi;
     double tau;
@@ -19,5 +26,10 @@ typedef struct _LineSearchParameter {
     double increasing;
 } LineSearchParameter;
 
-#endif // OPTIMIZATION_LINE_SEARCH_H
+void
+default_line_search_parameter(
+    LineSearchParameter *parameter
+);
+
+#endif // OPTIMIZATION_LINE_SEARCH_COMPONENT_H
 
