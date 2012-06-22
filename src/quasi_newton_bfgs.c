@@ -182,6 +182,9 @@ quasi_newton_bfgs(
             case LINE_SEARCH_FUNCTION_NAN:
                 status = QUASI_NEWTON_BFGS_FUNCTION_NAN;
                 goto result;
+            case LINE_SEARCH_OUT_OF_MEMORY:
+                status = QUASI_NEWTON_BFGS_OUT_OF_MEMORY;
+                goto result;
             case LINE_SEARCH_FAILED:
                 status = QUASI_NEWTON_BFGS_LINE_SEARCH_FAILED;
                 goto result;

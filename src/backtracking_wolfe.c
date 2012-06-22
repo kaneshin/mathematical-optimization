@@ -26,7 +26,10 @@ backtracking_wolfe(
     int i;
     double width, beta, f_x, gd, *x_temp, *g_temp, *storage;
 
-    storage = (double *)malloc(sizeof(double) * 2 * n);
+    /* allocate memory to storage */
+    if (NULL == (storage = (double *)malloc(sizeof(double) * 2 * n))) {
+        return LINE_SEARCH_OUT_OF_MEMORY;
+    }
     x_temp = storage;
     g_temp = x_temp + n;
 
