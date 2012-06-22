@@ -21,7 +21,7 @@ backtracking_wolfe(
     double *d,
     int n,
     LineSearchParameter *line_search_parameter,
-    NonLinearComponent *component
+    NonLinearComponent *non_linear_component
 ) {
     int i;
     double width, beta, f_x, gd, *x_temp, *g_temp, *storage;
@@ -32,20 +32,20 @@ backtracking_wolfe(
 
     width = line_search_parameter->tau;
     beta = line_search_parameter->step_width > 0. ? line_search_parameter->step_width : 1.;
-    if (NON_LINEAR_FUNCTION_NAN == evaluate_function(x, n, component)) {
+    if (NON_LINEAR_FUNCTION_NAN == evaluate_function(x, n, non_linear_component)) {
         return LINE_SEARCH_FUNCTION_NAN;
     }
-    f_x = component->f;
+    f_x = non_linear_component->f;
     gd = dot_product(g, d, n);
     for (i = 0; i < 20000; ++i) {
         update_step_vector(x_temp, x, beta, d, n);
-        if (NON_LINEAR_FUNCTION_NAN == evaluate_function(x_temp, n, component)) {
+        if (NON_LINEAR_FUNCTION_NAN == evaluate_function(x_temp, n, non_linear_component)) {
             return LINE_SEARCH_FUNCTION_NAN;
         }
-        if (component->f <= f_x + line_search_parameter->xi * beta * gd) {
-            evaluate_gradient(g_temp, x_temp, n, component);
+        if (non_linear_component->f <= f_x + line_search_parameter->xi * beta * gd) {
+            evaluate_gradient(g_temp, x_temp, n, non_linear_component);
             if (line_search_parameter->sigma * gd <= dot_product(g_temp, d, n)) {
-                component->alpha = beta;
+                non_linear_component->alpha = beta;
                 if (NULL != storage) {
                     free(storage);
                     storage = NULL;

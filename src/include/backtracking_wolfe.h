@@ -20,7 +20,7 @@ backtracking_wolfe(
     double *d,
     int n,
     LineSearchParameter *line_search_parameter,
-    NonLinearComponent *component
+    NonLinearComponent *non_linear_component
 );
 
 #endif // OPTIMIZATION_LINE_SEARCH_BACKTRACKING_WOLFE_H
