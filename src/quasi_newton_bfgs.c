@@ -4,7 +4,7 @@
  * File:        quasi_newton_bfgs.c
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 22-Jun-2012.
+ * Last Change: 23-Jun-2012.
  * TODO:
  *  Check elements of parameter
  *  Check each function of function_object
@@ -253,8 +253,8 @@ static void
 default_quasi_newton_bfgs_parameter(
     QuasiNewtonBFGSParameter *parameter
 ) {
-    parameter->tolerance        = 1.e-7;
-    parameter->upper_iteration  = 3000;
+    parameter->tolerance = 1.e-8;
+    parameter->upper_iteration = 5000;
 }
 
 static int

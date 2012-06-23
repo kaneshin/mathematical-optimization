@@ -4,7 +4,7 @@
  * File:        backtracking_wolfe.c
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 22-Jun-2012.
+ * Last Change: 23-Jun-2012.
  */
 
 #include "include/backtracking_wolfe.h"
@@ -26,7 +26,7 @@ backtracking_wolfe(
     int i;
     double width, beta, f_x, gd, *x_temp, *g_temp, *storage;
 
-    /* allocate memory to storage */
+    /* allocate memory to storage for x_temp and g_temp */
     if (NULL == (storage = (double *)malloc(sizeof(double) * 2 * n))) {
         return LINE_SEARCH_OUT_OF_MEMORY;
     }
