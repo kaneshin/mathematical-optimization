@@ -4,7 +4,7 @@
  * File:        line_search_component.c
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 22-Jun-2012.
+ * Last Change: 30-Jun-2012.
  */
 
 #include "include/line_search_component.h"

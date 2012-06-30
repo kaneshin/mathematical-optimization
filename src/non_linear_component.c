@@ -4,16 +4,40 @@
  * File:        non_linear_component.c
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 22-Jun-2012.
+ * Last Change: 30-Jun-2012.
  * TODO:
  *  Put static to evaluate functions - Use pointer
  */
 
 #include "include/non_linear_component.h"
 
+static int
+function(
+    const double *x,
+    unsigned int n,
+    NonLinearComponent *component
+);
+
+static int
+gradient(
+    double *g,
+    const double *x,
+    unsigned int n,
+    NonLinearComponent *component
+);
+
+static int
+function_gradient(
+    double *g,
+    const double *x,
+    unsigned int n,
+    NonLinearComponent *component
+);
+
 void
 initialize_non_linear_component(
     FunctionObject *function_object,
+    EvaluateObject *evaluate_object,
     NonLinearComponent *component
 ) {
     component->iteration_f      = 0;
@@ -21,12 +45,15 @@ initialize_non_linear_component(
     component->f                = 0.;
     component->alpha            = 0.;
     component->function_object  = function_object;
+    evaluate_object->function = function;
+    evaluate_object->gradient = gradient;
+    evaluate_object->function_gradient = function_gradient;
 }
 
-int
-evaluate_function(
+static int
+function(
     const double *x,
-    int n,
+    unsigned int n,
     NonLinearComponent *component
 ) {
     component->f = component->function_object->function(x, n);
@@ -37,14 +64,14 @@ evaluate_function(
     return NON_LINEAR_SATISFIED;
 }
 
-int
-evaluate_gradient(
+static int
+gradient(
     double *g,
     const double *x,
-    int n,
+    unsigned int n,
     NonLinearComponent *component
 ) {
-    int i;
+    unsigned int i;
     component->function_object->gradient(g, x, n);
     component->iteration_g++;
     for (i = 0; i < n; ++i) {
@@ -55,14 +82,14 @@ evaluate_gradient(
     return NON_LINEAR_SATISFIED;
 }
 
-int
-evaluate_function_gradient(
+static int
+function_gradient(
     double *g,
     const double *x,
-    int n,
+    unsigned int n,
     NonLinearComponent *component
 ) {
-    int i;
+    unsigned int i;
     component->f = component->function_object->function(x, n);
     component->iteration_f++;
     component->function_object->gradient(g, x, n);

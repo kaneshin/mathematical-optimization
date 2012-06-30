@@ -4,7 +4,7 @@
  * File:        backtracking_wolfe.h
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 22-Jun-2012.
+ * Last Change: 30-Jun-2012.
  */
 
 #ifndef OPTIMIZATION_LINE_SEARCH_BACKTRACKING_WOLFE_H
@@ -13,13 +13,19 @@
 #include "non_linear_component.h"
 #include "line_search_component.h"
 
+void
+default_backtracking_wolfe_parameter(
+    LineSearchParameter *parameter
+);
+
 int
 backtracking_wolfe(
     double *x,
     double *g,
     double *d,
-    int n,
+    unsigned int n,
     LineSearchParameter *line_search_parameter,
+    EvaluateObject *evaluate_object,
     NonLinearComponent *non_linear_component
 );
 

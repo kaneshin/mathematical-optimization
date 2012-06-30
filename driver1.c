@@ -3,7 +3,7 @@
  *
  * File:        driver1.c
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 22-Jun-2012.
+ * Last Change: 30-Jun-2012.
  *
  * Problem:
  * 	minimize f(x) = (x1 - x2^2)^2 / 2 + (x2 - 2)^2 / 2
@@ -19,21 +19,22 @@
 #include <stdlib.h>
 
 #include "src/include/quasi_newton_bfgs.h"
+#include "src/include/non_linear_component.h"
 #include "src/include/line_search_component.h"
 #include "src/include/backtracking_wolfe.h"
-#include "src/include/non_linear_component.h"
 
 static double
-function(const double *x, int n);
+function(const double *x, unsigned int n);
 
 static void
-gradient(double *g, const double *x, int n);
+gradient(double *g, const double *x, unsigned int n);
 
 int
 main(int argc, char* argv[]) {
-    int i, n;
+    unsigned int i, n;
     double *x, **b;
     FunctionObject Function;
+    LineSearchParameter line_search_parameter;
 
     n = 2;
     x = (double *)malloc(sizeof(double) * n);
@@ -47,8 +48,22 @@ main(int argc, char* argv[]) {
 
     Function.function = function;
     Function.gradient = gradient;
+    default_backtracking_wolfe_parameter(&line_search_parameter);
 
-    quasi_newton_bfgs(x, b, n, &Function, NULL, 'h', NULL, backtracking_wolfe);
+    /*
+     * int
+     * quasi_newton_bfgs(
+     *     double *x,
+     *     double **b,
+     *     int n,
+     *     FunctionObject *function_object,
+     *     line_search_t line_search,
+     *     LineSearchParameter *line_search_parameter,
+     *     QuasiNewtonBFGSParameter *quasi_newton_bfgs_parameter
+     * )
+     */
+    quasi_newton_bfgs(x, b, n, &Function,
+            backtracking_wolfe, &line_search_parameter, NULL);
 
     if (NULL != x) {
         free(x);
@@ -57,6 +72,7 @@ main(int argc, char* argv[]) {
     if (NULL != b) {
         if (NULL != *b) {
             free(*b);
+            *b = NULL;
         }
         free(b);
         b = NULL;
@@ -65,12 +81,12 @@ main(int argc, char* argv[]) {
 }
 
 static double
-function(const double *x, int n) {
+function(const double *x, unsigned int n) {
     return (x[0] - x[1] * x[1]) * (x[0] - x[1] * x[1]) + (x[1] - 2.) * (x[1] - 2.) / 2.;
 }
 
 static void
-gradient(double *g, const double *x, int n) {
+gradient(double *g, const double *x, unsigned int n) {
     g[0] = x[0] - x[1] * x[1];
     g[1] = -2. * x[1] * (x[0] - x[1] * x[1]) + x[1] - 2.;
 }

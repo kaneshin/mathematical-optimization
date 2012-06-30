@@ -4,7 +4,7 @@
  * File:        quasi_newton_bfgs.c
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 23-Jun-2012.
+ * Last Change: 30-Jun-2012.
  * TODO:
  *  Check elements of parameter
  *  Check each function of function_object
@@ -14,14 +14,36 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "include/backtracking_wolfe.h"
 #include "include/mymath.h"
 #include "include/myvector.h"
-#include "include/mymatrix.h"
+
+typedef struct _BFGSFormula {
+    int (*direction_search)(
+            double *,
+            double **,
+            double *,
+            int
+        );
+    int (*update_bfgs)(
+            double **,
+            const double *,
+            const double *,
+            double *,
+            int
+        );
+} BFGSFormula;
 
 static void
 default_quasi_newton_bfgs_parameter(
+    QuasiNewtonBFGSParameter *parameter
+);
+
+static void
+set_bfgs_formula(
+    BFGSFormula *bfgs_formula,
     QuasiNewtonBFGSParameter *parameter
 );
 
@@ -77,30 +99,32 @@ int
 quasi_newton_bfgs(
     double *x,
     double **b,
-    int n,
+    unsigned int n,
     FunctionObject *function_object,
-    QuasiNewtonBFGSParameter *quasi_newton_bfgs_parameter,
-    char formula,
+    line_search_t line_search,
     LineSearchParameter *line_search_parameter,
-    int (*line_search)(double *, double *, double *, int,
-        LineSearchParameter *, NonLinearComponent *
-    )
+    QuasiNewtonBFGSParameter *quasi_newton_bfgs_parameter
 ) {
-    int i, k, status;
+    char status;
+    unsigned int i, j, iter;
+    unsigned long int memory_size;
     double *storage, *storage_x, **storage_b,
            *d, *g, *x_temp, *g_temp, *s, *y, g_norm;
     NonLinearComponent component;
-    QuasiNewtonBFGSParameter _quasi_newton_bfgs_parameter;
     BFGSFormula bfgs_formula;
-    LineSearchParameter _line_search_parameter;
+    QuasiNewtonBFGSParameter _quasi_newton_bfgs_parameter;
+    EvaluateObject evaluate_object;
 
+    memory_size = sizeof(double) * n;
     if (NULL == x) {
         /* allocate memory to storage_x */
-        if (NULL == (storage_x = (double *)malloc(sizeof(double) * n))) {
+        if (NULL == (storage_x = (double *)malloc(memory_size))) {
             status = QUASI_NEWTON_BFGS_OUT_OF_MEMORY;
             goto result;
         }
-        zero_vector(storage_x, n);
+        for (i = 0; i < n; ++i) {
+            storage_x[i] = 0.;
+        }
         x = storage_x;
     } else {
         storage_x = NULL;
@@ -111,20 +135,24 @@ quasi_newton_bfgs(
             status = QUASI_NEWTON_BFGS_OUT_OF_MEMORY;
             goto result;
         }
-        if (NULL == (*storage_b = (double *)malloc(sizeof(double) * n * n))) {
+        if (NULL == (*storage_b = (double *)malloc(memory_size * n))) {
             status = QUASI_NEWTON_BFGS_OUT_OF_MEMORY;
             goto result;
         }
         for (i = 1; i < n; ++i) {
             storage_b[i] = storage_b[i - 1] + n;
         }
-        identity_matrix(storage_b, n);
+        for (i = 0; i < n; ++i) {
+            for (j = 0; j < n; ++j) {
+                storage_b[i][j] = 0.;
+            }
+        }
         b = storage_b;
     } else {
         storage_b = NULL;
     }
     /* allocate memory to storage for d, g, x_temp, g_temp, s and y */
-    if (NULL == (storage = (double *)malloc(sizeof(double) * n * 6))) {
+    if (NULL == (storage = (double *)malloc(memory_size * 6))) {
         status = QUASI_NEWTON_BFGS_OUT_OF_MEMORY;
         goto result;
     }
@@ -136,49 +164,43 @@ quasi_newton_bfgs(
     y = s + n;
 
     /* make sure that f and gf of this problem exist */
-    if (NULL == function_object) {
+    if (NULL == function_object->function || NULL == function_object->gradient) {
         status = QUASI_NEWTON_BFGS_NO_FUNCTION;
         goto result;
     }
+
     /* set the component of Non-Linear Programming */
-    initialize_non_linear_component(function_object, &component);
-    /* set the parameter of Quasi-Newton method on BFGS */
+    initialize_non_linear_component(function_object, &evaluate_object, &component);
+
+    /* TODO: Set defaule parameter in default_quasi_newton_bfgs_parameter
+     * set the parameter of Quasi-Newton method on BFGS */
     if (NULL == quasi_newton_bfgs_parameter) {
         quasi_newton_bfgs_parameter = &_quasi_newton_bfgs_parameter;
         default_quasi_newton_bfgs_parameter(quasi_newton_bfgs_parameter);
     }
+
     /* set the formula for solving this problem */
-    switch (formula) {
-        case 'b': case 'B':
-            bfgs_formula.direction_search = direction_search_B_formula;
-            bfgs_formula.update_bfgs = update_bfgs_B_formula;
-            break;
-        case 'h': case 'H':
-            bfgs_formula.direction_search = direction_search_H_formula;
-            bfgs_formula.update_bfgs = update_bfgs_H_formula;
-            break;
-        default:
-            bfgs_formula.direction_search = direction_search_H_formula;
-            bfgs_formula.update_bfgs = update_bfgs_H_formula;
-            break;
-    }
+    set_bfgs_formula(&bfgs_formula, quasi_newton_bfgs_parameter);
+
     /* parameter of Line Search */
     if (NULL == line_search_parameter) {
-        line_search_parameter = &_line_search_parameter;
-        default_line_search_parameter(line_search_parameter);
+        status = QUASI_NEWTON_BFGS_NO_PARAMETER;
+        goto result;
     }
 
     /* start to compute for solving this problem */
-    if (NON_LINEAR_FUNCTION_NAN == evaluate_gradient(g, x, n, &component)) {
+    if (NON_LINEAR_FUNCTION_NAN == evaluate_object.gradient(g, x, n, &component)) {
         status = QUASI_NEWTON_BFGS_FUNCTION_NAN;
         goto result;
     }
-    for (k = 1; k < quasi_newton_bfgs_parameter->upper_iteration; ++k) {
+    for (iter = 1; iter < quasi_newton_bfgs_parameter->upper_iteration; ++iter) {
         /* search a direction of descent */
-        status = bfgs_formula.direction_search(d, b, g, n);
-        if (status) goto result;
+        if (status = bfgs_formula.direction_search(d, b, g, n)) {
+            goto result;
+        }
         /* compute step width with a line search algorithm */
-        switch (line_search(x, g, d, n, line_search_parameter, &component)) {
+        switch (line_search(x, g, d, n, line_search_parameter,
+                    &evaluate_object, &component)) {
             case LINE_SEARCH_FUNCTION_NAN:
                 status = QUASI_NEWTON_BFGS_FUNCTION_NAN;
                 goto result;
@@ -191,27 +213,33 @@ quasi_newton_bfgs(
             default:
                 break;
         }
-        update_step_vector(x_temp, x, component.alpha, d, n);
+        /* update x_temp = x + alpha * d */
+        for (i = 0; i < n; ++i) {
+            x_temp[i] = x[i] + component.alpha * d[i];
+        }
+        /* update g_temp = gradient(x_temp) */
         if (NON_LINEAR_FUNCTION_NAN ==
-                evaluate_gradient(g_temp, x_temp, n, &component)) {
+                evaluate_object.gradient(g_temp, x_temp, n, &component)) {
             status = QUASI_NEWTON_BFGS_FUNCTION_NAN;
             goto result;
         }
+        /*TODO: compute g_norm */
         g_norm = norm_infty(g_temp, n);
 
-        print_iteration_info(k, g_norm, &component);
+        print_iteration_info(iter, g_norm, &component);
 
         if (g_norm < quasi_newton_bfgs_parameter->tolerance) {
             status = QUASI_NEWTON_BFGS_SATISFIED;
             goto result;
         }
 
+        /* compute s = x_temp - x and y = g_temp - g */
         for (i = 0; i < n; ++i) {
             s[i] = x_temp[i] - x[i];
             y[i] = g_temp[i] - g[i];
         }
-        status = bfgs_formula.update_bfgs(b, s, y, x, n);
-        switch (status) {
+        /* update matrix of bfgs */
+        switch (status = bfgs_formula.update_bfgs(b, s, y, x, n)) {
             case QUASI_NEWTON_BFGS_FUNCTION_NAN:
                 goto result;
             case QUASI_NEWTON_BFGS_NOT_UPDATE:
@@ -221,19 +249,14 @@ quasi_newton_bfgs(
                 break;
         }
 
-        for (i = 0; i < n; ++i) {
-            x[i] = x_temp[i];
-            g[i] = g_temp[i];
-        }
+        memcpy(x, x_temp, memory_size);
+        memcpy(g, g_temp, memory_size);
     }
 
 result:
-    print_result_info(status, k, &component);
+    print_result_info(status, iter, &component);
 
-    if (NULL != storage) {
-        free(storage);
-        storage = NULL;
-    }
+    /* release memory of storage_x, storage_b and storage_x */
     if (NULL != storage_x) {
         free(storage_x);
         storage_x = NULL;
@@ -241,9 +264,14 @@ result:
     if (NULL != storage_b) {
         if (NULL != *storage_b) {
             free(*storage_b);
+            *storage_b = NULL;
         }
         free(storage_b);
         storage_b = NULL;
+    }
+    if (NULL != storage) {
+        free(storage);
+        storage = NULL;
     }
 
     return status;
@@ -253,8 +281,30 @@ static void
 default_quasi_newton_bfgs_parameter(
     QuasiNewtonBFGSParameter *parameter
 ) {
+    parameter->formula = 'h';
     parameter->tolerance = 1.e-8;
     parameter->upper_iteration = 5000;
+}
+
+static void
+set_bfgs_formula(
+    BFGSFormula *bfgs_formula,
+    QuasiNewtonBFGSParameter *parameter
+) {
+    switch (parameter->formula) {
+        case 'b': case 'B':
+            bfgs_formula->direction_search = direction_search_B_formula;
+            bfgs_formula->update_bfgs = update_bfgs_B_formula;
+            break;
+        case 'h': case 'H':
+            bfgs_formula->direction_search = direction_search_H_formula;
+            bfgs_formula->update_bfgs = update_bfgs_H_formula;
+            break;
+        default:
+            bfgs_formula->direction_search = direction_search_H_formula;
+            bfgs_formula->update_bfgs = update_bfgs_H_formula;
+            break;
+    }
 }
 
 static int
@@ -393,6 +443,9 @@ print_result_info(
             break;
         case QUASI_NEWTON_BFGS_NO_FUNCTION:
             printf("Failed: Function Object is not defined\n");
+            break;
+        case QUASI_NEWTON_BFGS_NO_PARAMETER:
+            printf("Failed: Parameter of line search is not defined\n");
             break;
         case QUASI_NEWTON_BFGS_FAILED:
             printf("Failed: FAILED\n");

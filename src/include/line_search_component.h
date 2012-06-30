@@ -4,7 +4,7 @@
  * File:        line_search_component.h
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 22-Jun-2012.
+ * Last Change: 30-Jun-2012.
  */
 
 #ifndef OPTIMIZATION_LINE_SEARCH_COMPONENT_H

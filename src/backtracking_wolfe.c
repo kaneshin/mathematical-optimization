@@ -4,7 +4,7 @@
  * File:        backtracking_wolfe.c
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 23-Jun-2012.
+ * Last Change: 30-Jun-2012.
  */
 
 #include "include/backtracking_wolfe.h"
@@ -14,16 +14,29 @@
 
 #include "include/myvector.h"
 
+void
+default_backtracking_wolfe_parameter(
+    LineSearchParameter *parameter
+) {
+    parameter->step_width   = 1.;
+    parameter->xi           = 0.001;
+    parameter->tau          = .5;
+    parameter->sigma        = .2;
+    parameter->decreasing   = .5;
+    parameter->increasing   = 2.1;
+}
+
 int
 backtracking_wolfe(
     double *x,
     double *g,
     double *d,
-    int n,
+    unsigned int n,
     LineSearchParameter *line_search_parameter,
+    EvaluateObject *evaluate_object,
     NonLinearComponent *non_linear_component
 ) {
-    int i;
+    unsigned int i;
     double width, beta, f_x, gd, *x_temp, *g_temp, *storage;
 
     /* allocate memory to storage for x_temp and g_temp */
@@ -35,18 +48,18 @@ backtracking_wolfe(
 
     width = line_search_parameter->tau;
     beta = line_search_parameter->step_width > 0. ? line_search_parameter->step_width : 1.;
-    if (NON_LINEAR_FUNCTION_NAN == evaluate_function(x, n, non_linear_component)) {
+    if (NON_LINEAR_FUNCTION_NAN == evaluate_object->function(x, n, non_linear_component)) {
         return LINE_SEARCH_FUNCTION_NAN;
     }
     f_x = non_linear_component->f;
     gd = dot_product(g, d, n);
     for (i = 0; i < 20000; ++i) {
         update_step_vector(x_temp, x, beta, d, n);
-        if (NON_LINEAR_FUNCTION_NAN == evaluate_function(x_temp, n, non_linear_component)) {
+        if (NON_LINEAR_FUNCTION_NAN == evaluate_object->function(x_temp, n, non_linear_component)) {
             return LINE_SEARCH_FUNCTION_NAN;
         }
         if (non_linear_component->f <= f_x + line_search_parameter->xi * beta * gd) {
-            evaluate_gradient(g_temp, x_temp, n, non_linear_component);
+            evaluate_object->gradient(g_temp, x_temp, n, non_linear_component);
             if (line_search_parameter->sigma * gd <= dot_product(g_temp, d, n)) {
                 non_linear_component->alpha = beta;
                 if (NULL != storage) {

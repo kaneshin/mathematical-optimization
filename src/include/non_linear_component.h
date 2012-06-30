@@ -4,7 +4,7 @@
  * File:        non_linear_component.h
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 22-Jun-2012.
+ * Last Change: 30-Jun-2012.
  */
 
 #ifndef OPTIMIZATION_NON_LINEAR_COMPONENT_H
@@ -16,41 +16,43 @@ enum NonLinearStatus {
 };
 
 typedef struct _FunctionObject {
-    double  (*function)(const double *, int);
-    void    (*gradient)(double *, const double *, int);
+    double  (*function)(const double *, unsigned int);
+    void    (*gradient)(double *, const double *, unsigned int);
 } FunctionObject;
 
 typedef struct _NonLinearComponent {
-    int iteration_f;
-    int iteration_g;
+    unsigned int iteration_f;
+    unsigned int iteration_g;
     double f;
     double alpha;
     FunctionObject *function_object;
 } NonLinearComponent;
 
+typedef struct _EvaluateObject {
+    int (*function)(
+            const double *,
+            unsigned int,
+            NonLinearComponent *
+        );
+    int (*gradient)(
+            double *,
+            const double *,
+            unsigned int,
+            NonLinearComponent *
+        );
+    int (*function_gradient)(
+            double *,
+            const double *,
+            unsigned int,
+            NonLinearComponent *
+            );
+    FunctionObject *function_object;
+} EvaluateObject;
+
 void
 initialize_non_linear_component(
     FunctionObject *function_object,
-    NonLinearComponent *component
-);
-
-int evaluate_function(
-    const double *x,
-    int n,
-    NonLinearComponent *component
-);
-
-int evaluate_gradient(
-    double *g,
-    const double *x,
-    int n,
-    NonLinearComponent *component
-);
-
-int evaluate_function_gradient(
-    double *g,
-    const double *x,
-    int n,
+    EvaluateObject *evaluate_object,
     NonLinearComponent *component
 );
 

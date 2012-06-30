@@ -2,7 +2,7 @@
 #
 # File:         Makefile
 # Maintainer:   Shintaro Kaneko <kaneshin0120@gmail.com>
-# Last Change:  21-Jun-2012.
+# Last Change:  30-Jun-2012.
 #
 # Makefile for drivers
 
@@ -13,8 +13,7 @@ _SRCS = quasi_newton_bfgs.c\
 	line_search_component.c\
 	non_linear_component.c\
 	mymath.c\
-	myvector.c\
-	mymatrix.c
+	myvector.c
 _OBJS = $(_SRCS:%.c=%.o)
 SRCDIR = src
 OBJDIR = bin

@@ -3,7 +3,7 @@
  *
  * File:        driver2.c
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 22-Jun-2012.
+ * Last Change: 30-Jun-2012.
  *
  * Problem:
  * 	minimize f(x) =
@@ -23,16 +23,17 @@
 #include "src/include/non_linear_component.h"
 
 static double
-function(const double *x, int n);
+function(const double *x, unsigned int n);
 
 static void
-gradient(double *g, const double *x, int n);
+gradient(double *g, const double *x, unsigned int n);
 
 int
 main(int argc, char* argv[]) {
-    int i, n;
+    unsigned int i, n;
     double *x;
     FunctionObject Function;
+    LineSearchParameter line_search_parameter;
 
     n = 100;
     x = (double *)malloc(sizeof(double) * n);
@@ -41,8 +42,10 @@ main(int argc, char* argv[]) {
 
     Function.function = function;
     Function.gradient = gradient;
+    default_backtracking_wolfe_parameter(&line_search_parameter);
 
-    quasi_newton_bfgs(x, NULL, n, &Function, NULL, 'h', NULL, backtracking_wolfe);
+    quasi_newton_bfgs(x, NULL, n, &Function,
+            backtracking_wolfe, &line_search_parameter, NULL);
 
     if (NULL != x) {
         free(x);
@@ -53,8 +56,8 @@ main(int argc, char* argv[]) {
 }
 
 static double
-function(const double *x, int n) {
-    int i;
+function(const double *x, unsigned int n) {
+    unsigned int i;
     double f = 0.;
     for (i = 0; i < n; ++i) {
         f += exp(x[i]) - x[i] * sqrt(i + 1.);
@@ -63,8 +66,8 @@ function(const double *x, int n) {
 }
 
 static void
-gradient(double *g, const double *x, int n) {
-    int i;
+gradient(double *g, const double *x, unsigned int n) {
+    unsigned int i;
     for (i = 0; i < n; ++i) {
         g[i] = exp(x[i]) - sqrt(i + 1.);
     }
