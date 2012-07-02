@@ -2,9 +2,9 @@
  * vim:set ts=8 sts=4 sw=4 tw=0:
  *
  * File:        line_search_component.h
- * Version:     0.1.0
+ * Version:     0.2.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 30-Jun-2012.
+ * Last Change: 02-Jul-2012.
  */
 
 #ifndef OPTIMIZATION_LINE_SEARCH_COMPONENT_H
@@ -18,9 +18,10 @@ enum LineSearchStatus {
 };
 
 typedef struct _LineSearchParameter {
+    int upper_iter;
+    double initial_step;
     double step_width;
     double xi;
-    double tau;
     double sigma;
     double decreasing;
     double increasing;
