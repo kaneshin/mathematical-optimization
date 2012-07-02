@@ -2,9 +2,9 @@
  * vim:set ts=8 sts=4 sw=4 tw=0:
  *
  * File:        backtracking_wolfe.h
- * Version:     0.1.0
+ * Version:     0.2.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 30-Jun-2012.
+ * Last Change: 02-Jul-2012.
  */
 
 #ifndef OPTIMIZATION_LINE_SEARCH_BACKTRACKING_WOLFE_H
@@ -21,13 +21,13 @@ default_backtracking_wolfe_parameter(
 int
 backtracking_wolfe(
     double *storage,
-    double *x,
-    double *g,
-    double *d,
+    const double *x,
+    const double *g,
+    const double *d,
     unsigned int n,
-    LineSearchParameter *line_search_parameter,
     EvaluateObject *evaluate_object,
-    NonLinearComponent *non_linear_component
+    LineSearchParameter *line_search_parameter,
+    NonLinearComponent *component
 );
 
 #endif // OPTIMIZATION_LINE_SEARCH_BACKTRACKING_WOLFE_H

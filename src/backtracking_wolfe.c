@@ -2,72 +2,68 @@
  * vim:set ts=8 sts=4 sw=4 tw=0:
  *
  * File:        backtracking_wolfe.c
- * Version:     0.1.0
+ * Version:     0.2.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 30-Jun-2012.
+ * Last Change: 02-Jul-2012.
  */
 
 #include "include/backtracking_wolfe.h"
 
-#include <math.h>
-
-#include "include/myvector.h"
+#include "include/mymath.h"
 
 void
 default_backtracking_wolfe_parameter(
     LineSearchParameter *parameter
 ) {
-    parameter->step_width   = 1.;
-    parameter->xi           = 0.001;
-    parameter->tau          = .5;
-    parameter->sigma        = .2;
-    parameter->decreasing   = .5;
-    parameter->increasing   = 2.1;
+    parameter->upper_iter = 5000;
+    parameter->initial_step = .5;
+    parameter->step_width = 1.;
+    parameter->xi = 0.001;
+    parameter->sigma = .2;
+    parameter->decreasing = .5;
+    parameter->increasing = 2.1;
 }
 
 int
 backtracking_wolfe(
     double *storage,
-    double *x,
-    double *g,
-    double *d,
+    const double *x,
+    const double *g,
+    const double *d,
     unsigned int n,
-    LineSearchParameter *line_search_parameter,
     EvaluateObject *evaluate_object,
-    NonLinearComponent *non_linear_component
+    LineSearchParameter *parameter,
+    NonLinearComponent *component
 ) {
-    unsigned int i;
+    unsigned int iter;
     double width, beta, f_x, gd, *x_temp, *g_temp;
 
     x_temp = storage;
     g_temp = x_temp + n;
 
-    width = line_search_parameter->tau;
-    beta  = line_search_parameter->step_width > 0.
-        ? line_search_parameter->step_width : 1.;
-    if (NON_LINEAR_FUNCTION_NAN
-            == evaluate_object->function(x, n, non_linear_component)) {
+    width = parameter->initial_step;
+    beta = parameter->step_width;
+    if (NON_LINEAR_FUNCTION_NAN == evaluate_object->function(x, n, component))
         return LINE_SEARCH_FUNCTION_NAN;
-    }
-    f_x = non_linear_component->f;
+    f_x = component->f;
     gd = dot_product(g, d, n);
-    for (i = 0; i < 20000; ++i) {
+    for (iter = 1; iter <= parameter->upper_iter; ++iter) {
         update_step_vector(x_temp, x, beta, d, n);
         if (NON_LINEAR_FUNCTION_NAN
-                == evaluate_object->function(x_temp, n, non_linear_component)) {
+                == evaluate_object->function(x_temp, n, component))
             return LINE_SEARCH_FUNCTION_NAN;
-        }
-        if (non_linear_component->f
-                <= f_x + line_search_parameter->xi * beta * gd) {
-            evaluate_object->gradient(g_temp, x_temp, n, non_linear_component);
-            if (line_search_parameter->sigma * gd <= dot_product(g_temp, d, n)) {
-                non_linear_component->alpha = beta;
+        if (component->f <= f_x + parameter->xi * beta * gd) {
+            if (NON_LINEAR_FUNCTION_NAN
+                    == evaluate_object->gradient(g_temp, x_temp, n, component))
+                return LINE_SEARCH_FUNCTION_NAN;
+            if (parameter->sigma * gd <= dot_product(g_temp, d, n)) {
+                component->alpha = beta;
                 return LINE_SEARCH_SATISFIED;
             } else {
-                width = line_search_parameter->increasing;
+                width = parameter->increasing;
             }
         } else {
-            width = line_search_parameter->decreasing;
+            width = parameter->decreasing;
         }
         beta *= width;
     }
