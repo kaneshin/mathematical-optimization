@@ -109,13 +109,14 @@ quasi_newton_bfgs(
     unsigned int i, j, iter;
     unsigned long int memory_size;
     double *storage, *storage_x, **storage_b,
-           *d, *g, *x_temp, *g_temp, *s, *y, g_norm;
+           *d, *g, *x_temp, *g_temp, *s, *y, g_norm, *work;
     NonLinearComponent component;
     BFGSFormula bfgs_formula;
     QuasiNewtonBFGSParameter _quasi_newton_bfgs_parameter;
     EvaluateObject evaluate_object;
 
     memory_size = sizeof(double) * n;
+    /* allocate memory to storage for x_temp and g_temp */
     if (NULL == x) {
         /* allocate memory to storage_x */
         if (NULL == (storage_x = (double *)malloc(memory_size))) {
@@ -151,8 +152,8 @@ quasi_newton_bfgs(
     } else {
         storage_b = NULL;
     }
-    /* allocate memory to storage for d, g, x_temp, g_temp, s and y */
-    if (NULL == (storage = (double *)malloc(memory_size * 6))) {
+    /* allocate memory to storage for d, g, x_temp, g_temp, s, y and work */
+    if (NULL == (storage = (double *)malloc(memory_size * 8))) {
         status = QUASI_NEWTON_BFGS_OUT_OF_MEMORY;
         goto result;
     }
@@ -162,6 +163,7 @@ quasi_newton_bfgs(
     g_temp = x_temp + n;
     s = g_temp + n;
     y = s + n;
+    work = y + n;
 
     /* make sure that f and gf of this problem exist */
     if (NULL == function_object->function || NULL == function_object->gradient) {
@@ -199,13 +201,10 @@ quasi_newton_bfgs(
             goto result;
         }
         /* compute step width with a line search algorithm */
-        switch (line_search(x, g, d, n, line_search_parameter,
+        switch (line_search(work, x, g, d, n, line_search_parameter,
                     &evaluate_object, &component)) {
             case LINE_SEARCH_FUNCTION_NAN:
                 status = QUASI_NEWTON_BFGS_FUNCTION_NAN;
-                goto result;
-            case LINE_SEARCH_OUT_OF_MEMORY:
-                status = QUASI_NEWTON_BFGS_OUT_OF_MEMORY;
                 goto result;
             case LINE_SEARCH_FAILED:
                 status = QUASI_NEWTON_BFGS_LINE_SEARCH_FAILED;

@@ -28,6 +28,7 @@ typedef int (*line_search_t)(
     double *,
     double *,
     double *,
+    double *,
     unsigned int,
     LineSearchParameter *,
     EvaluateObject *,

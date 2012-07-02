@@ -20,6 +20,7 @@ default_backtracking_wolfe_parameter(
 
 int
 backtracking_wolfe(
+    double *storage,
     double *x,
     double *g,
     double *d,
