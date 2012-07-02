@@ -16,13 +16,14 @@
  * 	x* = [ 4, 2 ]^T
  */
 
+#define armijo armijo
+
 #include <stdlib.h>
 
 #include "src/include/quasi_newton_bfgs.h"
 #include "src/include/non_linear_component.h"
 #include "src/include/line_search_component.h"
-#include "src/include/backtracking_wolfe.h"
-#include "src/include/backtracking_strong_wolfe.h"
+#include "src/include/armijo.h"
 
 static double
 function(const double *x, unsigned int n);
@@ -49,7 +50,8 @@ main(int argc, char* argv[]) {
 
     Function.function = function;
     Function.gradient = gradient;
-    default_backtracking_strong_wolfe_parameter(&line_search_parameter);
+    // default_backtracking_strong_wolfe_parameter(&line_search_parameter);
+    default_armijo_parameter(&line_search_parameter);
 
     /*
      * int
@@ -64,7 +66,7 @@ main(int argc, char* argv[]) {
      * )
      */
     quasi_newton_bfgs(x, b, n, &Function,
-            backtracking_strong_wolfe, &line_search_parameter, NULL);
+            armijo, &line_search_parameter, NULL);
 
     if (NULL != x) {
         free(x);

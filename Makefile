@@ -9,6 +9,9 @@
 CC = gcc
 CFLAGS = -Wall -O3
 _SRCS = quasi_newton_bfgs.c\
+	armijo.c\
+	wolfe.c\
+	strong_wolfe.c\
 	backtracking_wolfe.c\
 	backtracking_strong_wolfe.c\
 	line_search_component.c\
