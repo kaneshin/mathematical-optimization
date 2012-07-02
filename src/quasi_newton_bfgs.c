@@ -4,7 +4,7 @@
  * File:        quasi_newton_bfgs.c
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 30-Jun-2012.
+ * Last Change: 02-Jul-2012.
  * TODO:
  *  Check elements of parameter
  *  Check each function of function_object
@@ -16,9 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "include/backtracking_wolfe.h"
 #include "include/mymath.h"
-#include "include/myvector.h"
 
 typedef struct _BFGSFormula {
     int (*direction_search)(
@@ -105,7 +103,7 @@ quasi_newton_bfgs(
     LineSearchParameter *line_search_parameter,
     QuasiNewtonBFGSParameter *quasi_newton_bfgs_parameter
 ) {
-    char status;
+    int status;
     unsigned int i, j, iter;
     unsigned long int memory_size;
     double *storage, *storage_x, **storage_b,
@@ -195,14 +193,14 @@ quasi_newton_bfgs(
         status = QUASI_NEWTON_BFGS_FUNCTION_NAN;
         goto result;
     }
-    for (iter = 1; iter < quasi_newton_bfgs_parameter->upper_iteration; ++iter) {
+    for (iter = 1; iter <= quasi_newton_bfgs_parameter->upper_iter; ++iter) {
         /* search a direction of descent */
         if (status = bfgs_formula.direction_search(d, b, g, n)) {
             goto result;
         }
         /* compute step width with a line search algorithm */
-        switch (line_search(work, x, g, d, n, line_search_parameter,
-                    &evaluate_object, &component)) {
+        switch (line_search(work, x, g, d, n,
+                    &evaluate_object, line_search_parameter, &component)) {
             case LINE_SEARCH_FUNCTION_NAN:
                 status = QUASI_NEWTON_BFGS_FUNCTION_NAN;
                 goto result;
@@ -223,7 +221,7 @@ quasi_newton_bfgs(
             goto result;
         }
         /*TODO: compute g_norm */
-        g_norm = norm_infty(g_temp, n);
+        g_norm = infinity_norm(g_temp, n);
 
         print_iteration_info(iter, g_norm, &component);
 
@@ -282,7 +280,7 @@ default_quasi_newton_bfgs_parameter(
 ) {
     parameter->formula = 'h';
     parameter->tolerance = 1.e-8;
-    parameter->upper_iteration = 5000;
+    parameter->upper_iter = 5000;
 }
 
 static void

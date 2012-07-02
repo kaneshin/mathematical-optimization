@@ -4,7 +4,7 @@
  * File:        quasi_newton_bfgs.h
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 30-Jun-2012.
+ * Last Change: 02-Jul-2012.
  */
 
 #ifndef OPTIMIZATION_QUASI_NEWTON_BFGS_H
@@ -26,19 +26,19 @@ enum QuasiNewtonBFGSStatus {
 
 typedef int (*line_search_t)(
     double *,
-    double *,
-    double *,
-    double *,
+    const double *,
+    const double *,
+    const double *,
     unsigned int,
-    LineSearchParameter *,
     EvaluateObject *,
+    LineSearchParameter *,
     NonLinearComponent *
 );
 
 typedef struct _QuasiNewtonBFGSParameter {
     char formula;
     double tolerance;
-    int upper_iteration;
+    int upper_iter;
 } QuasiNewtonBFGSParameter;
 
 int
