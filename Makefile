@@ -10,6 +10,7 @@ CC = gcc
 CFLAGS = -Wall -O3
 _SRCS = quasi_newton_bfgs.c\
 	backtracking_wolfe.c\
+	backtracking_strong_wolfe.c\
 	line_search_component.c\
 	non_linear_component.c\
 	mymath.c
