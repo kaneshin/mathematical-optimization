@@ -172,7 +172,10 @@ quasi_newton_bfgs(
     /* set the component of Non-Linear Programming */
     initialize_non_linear_component(function_object, &evaluate_object, &component);
 
-    /* TODO: Set defaule parameter in default_quasi_newton_bfgs_parameter
+    /* TODO:
+     * Set defaule parameter for line_search_parameter
+     * Set defaule parameter in default_quasi_newton_bfgs_parameter
+     *
      * set the parameter of Quasi-Newton method on BFGS */
     if (NULL == quasi_newton_bfgs_parameter) {
         quasi_newton_bfgs_parameter = &_quasi_newton_bfgs_parameter;

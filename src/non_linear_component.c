@@ -4,9 +4,7 @@
  * File:        non_linear_component.c
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 30-Jun-2012.
- * TODO:
- *  Put static to evaluate functions - Use pointer
+ * Last Change: 02-Jul-2012.
  */
 
 #include "include/non_linear_component.h"

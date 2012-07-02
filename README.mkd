@@ -1,30 +1,26 @@
 Mathematical Optimization
 =========================
 
-Non-Linear Programming Solving Method
--------------------------------------
-- BFGS(B)
-- BFGS(H)
+##Non-Linear Programming Solving Method
 
-Line Search Method
-------------------
-- General
-- Backtracking
+- BFGS with B formula
+- BFGS with H formula
 
-Line Search Conditions
-----------------------
-- Armijo condition
-- Wolfe conditions
-- Strong Wolfe conditions
+##Line Search Condition
 
-ToDo
-----
+- Armijo
+- Wolfe
+- Strong Wolfe
+- Backtracking Wolfe
+- Backtracking Strong Wolfe
+
+##ToDo
+
 - limited memory BFGS
 - Goldstein conditions
 - Cholesky
 
-License
--------
+##License
 
 The MIT License (MIT)
 
