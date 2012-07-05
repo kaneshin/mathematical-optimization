@@ -5,11 +5,11 @@ OBJ = no
 MYMATH = mymath
 MYLINESEARCH = line_search
 
-$(OBJ):
-	$(CC) $(CUNITLIB) test_$(OBJ).c ../src/$(OBJ).c -lcunit -o test_$(OBJ).o
-
 $(MYMATH):
 	$(CC) $(CUNITLIB) test_$(MYMATH).c ../src/$(MYMATH).c -lcunit -o test_$(MYMATH).o
+
+$(OBJ):
+	$(CC) $(CUNITLIB) test_$(OBJ).c ../src/$(OBJ).c -lcunit -o test_$(OBJ).o
 
 $(MYLINESEARCH):
 	$(CC) $(CUNITLIB) test_$(MYLINESEARCH).c ../src/$(MYLINESEARCH).c ../src/$(MYMATH).c -lcunit -o test_$(MYLINESEARCH).o
