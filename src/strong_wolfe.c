@@ -4,10 +4,12 @@
  * File:        strong_wolfe.c
  * Version:     0.2.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 02-Jul-2012.
+ * Last Change: 05-Jul-2012.
  */
 
 #include "include/strong_wolfe.h"
+
+#include <math.h>
 
 #include "include/mymath.h"
 
