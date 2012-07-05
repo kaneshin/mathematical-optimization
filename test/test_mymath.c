@@ -14,9 +14,9 @@ test_dot_product(void) {
      * dot_product(
      *     const double *x,
      *     const double *y,
-     *     unsigned int n
+     *     int n
      * ); */
-    unsigned int i;
+    int i;
 
     for (i = 0; i < n; ++i) {
         x[i] = (i - 3) * 1.;
@@ -40,9 +40,9 @@ test_update_step_vector(void) {
      *     const double *x,
      *     double alpha,
      *     const double *y,
-     *     unsigned int n
+     *     int n
      * ); */
-    unsigned int i;
+    int i;
     double alpha, *result, *expect;
 
     result = (double *)malloc(n * sizeof(double));
@@ -69,7 +69,7 @@ test_manhattan_norm(void) {
     /* double
      * manhattan_norm(
      *     const double *x,
-     *     unsigned int n
+     *     int n
      * ); */
     int i;
 
@@ -88,7 +88,7 @@ test_euclidean_norm(void) {
     /* double
      * euclidean_norm(
      *     const double *x,
-     *     unsigned int n
+     *     int n
      * ); */
     int i;
 
@@ -107,7 +107,7 @@ test_infinity_norm(void) {
     /* double
      * infinity_norm(
      *     const double *x,
-     *     unsigned int n
+     *     int n
      * ); */
     int i;
 
@@ -128,10 +128,10 @@ test_gauss_seidel(void) {
      * double **a,
      * double *x,
      * const double *b,
-     * unsigned int n,
+     * int n,
      * double epsilon
      * ); */
-    unsigned int i, j;
+    int i, j;
     double *expect;
 
     expect = (double *)malloc(sizeof(double) * n);
@@ -162,11 +162,11 @@ test_successive_over_relaxation(void) {
      *     double **a,
      *     double *x,
      *     const double *b,
-     *     unsigned int n,
+     *     int n,
      *     double epsilon,
      *     double omega
      * ); */
-    unsigned int i, j;
+    int i, j;
     double *expect;
 
     expect = (double *)malloc(sizeof(double) * n);

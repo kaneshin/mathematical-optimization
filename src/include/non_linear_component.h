@@ -16,13 +16,13 @@ enum NonLinearStatus {
 };
 
 typedef struct _FunctionObject {
-    double  (*function)(const double *, unsigned int);
-    void    (*gradient)(double *, const double *, unsigned int);
+    double  (*function)(const double *, int);
+    void    (*gradient)(double *, const double *, int);
 } FunctionObject;
 
 typedef struct _NonLinearComponent {
-    unsigned int iteration_f;
-    unsigned int iteration_g;
+    int iteration_f;
+    int iteration_g;
     double f;
     double alpha;
     FunctionObject *function_object;
@@ -31,19 +31,19 @@ typedef struct _NonLinearComponent {
 typedef struct _EvaluateObject {
     int (*function)(
             const double *,
-            unsigned int,
+            int,
             NonLinearComponent *
         );
     int (*gradient)(
             double *,
             const double *,
-            unsigned int,
+            int,
             NonLinearComponent *
         );
     int (*function_gradient)(
             double *,
             const double *,
-            unsigned int,
+            int,
             NonLinearComponent *
             );
     FunctionObject *function_object;

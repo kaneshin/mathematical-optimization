@@ -24,7 +24,7 @@ backtracking_wolfe(
     const double *x,
     const double *g,
     const double *d,
-    unsigned int n,
+    int n,
     EvaluateObject *evaluate_object,
     LineSearchParameter *line_search_parameter,
     NonLinearComponent *component

@@ -23,7 +23,7 @@ double
 dot_product(
     const double *x,
     const double *y,
-    unsigned int n
+    int n
 );
 
 void
@@ -32,32 +32,32 @@ update_step_vector(
     const double *x,
     double alpha,
     const double *y,
-    unsigned int n
+    int n
 );
 
 double
 manhattan_norm(
     const double *x,
-    unsigned int n
+    int n
 );
 
 double
 euclidean_norm(
     const double *x,
-    unsigned int n
+    int n
 );
 
 double
 infinity_norm(
     const double *x,
-    unsigned int n
+    int n
 );
 
 int gauss_seidel(
     double **a,
     double *x,
     const double *b,
-    unsigned int n,
+    int n,
     double epsilon
 );
 
@@ -65,7 +65,7 @@ int successive_over_relaxation(
     double **a,
     double *x,
     const double *b,
-    unsigned int n,
+    int n,
     double epsilon,
     double omega
 );

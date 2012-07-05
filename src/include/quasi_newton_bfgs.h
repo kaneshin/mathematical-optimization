@@ -29,7 +29,7 @@ typedef int (*line_search_t)(
     const double *,
     const double *,
     const double *,
-    unsigned int,
+    int,
     EvaluateObject *,
     LineSearchParameter *,
     NonLinearComponent *
@@ -45,7 +45,7 @@ int
 quasi_newton_bfgs(
     double *x,
     double **b,
-    unsigned int n,
+    int n,
     FunctionObject *function_object,
     line_search_t line_search,
     LineSearchParameter *line_search_parameter,

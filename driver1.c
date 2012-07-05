@@ -36,14 +36,14 @@
 #endif
 
 static double
-function(const double *x, unsigned int n);
+function(const double *x, int n);
 
 static void
-gradient(double *g, const double *x, unsigned int n);
+gradient(double *g, const double *x, int n);
 
 int
 main(int argc, char* argv[]) {
-    unsigned int i, n;
+    int i, n;
     double *x, **b;
     FunctionObject Function;
     LineSearchParameter line_search_parameter;
@@ -128,12 +128,12 @@ main(int argc, char* argv[]) {
 }
 
 static double
-function(const double *x, unsigned int n) {
+function(const double *x, int n) {
     return (x[0] - x[1] * x[1]) * (x[0] - x[1] * x[1]) + (x[1] - 2.) * (x[1] - 2.) / 2.;
 }
 
 static void
-gradient(double *g, const double *x, unsigned int n) {
+gradient(double *g, const double *x, int n) {
     g[0] = x[0] - x[1] * x[1];
     g[1] = -2. * x[1] * (x[0] - x[1] * x[1]) + x[1] - 2.;
 }

@@ -30,12 +30,12 @@ backtracking_wolfe(
     const double *x,
     const double *g,
     const double *d,
-    unsigned int n,
+    int n,
     EvaluateObject *evaluate_object,
     LineSearchParameter *parameter,
     NonLinearComponent *component
 ) {
-    unsigned int iter;
+    int iter;
     double width, beta, f_x, gd, *x_temp, *g_temp;
 
     x_temp = storage;

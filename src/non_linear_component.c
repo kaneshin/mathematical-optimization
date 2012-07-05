@@ -12,7 +12,7 @@
 static int
 function(
     const double *x,
-    unsigned int n,
+    int n,
     NonLinearComponent *component
 );
 
@@ -20,7 +20,7 @@ static int
 gradient(
     double *g,
     const double *x,
-    unsigned int n,
+    int n,
     NonLinearComponent *component
 );
 
@@ -28,7 +28,7 @@ static int
 function_gradient(
     double *g,
     const double *x,
-    unsigned int n,
+    int n,
     NonLinearComponent *component
 );
 
@@ -51,7 +51,7 @@ initialize_non_linear_component(
 static int
 function(
     const double *x,
-    unsigned int n,
+    int n,
     NonLinearComponent *component
 ) {
     component->f = component->function_object->function(x, n);
@@ -66,10 +66,10 @@ static int
 gradient(
     double *g,
     const double *x,
-    unsigned int n,
+    int n,
     NonLinearComponent *component
 ) {
-    unsigned int i;
+    int i;
     component->function_object->gradient(g, x, n);
     component->iteration_g++;
     for (i = 0; i < n; ++i) {
@@ -84,10 +84,10 @@ static int
 function_gradient(
     double *g,
     const double *x,
-    unsigned int n,
+    int n,
     NonLinearComponent *component
 ) {
-    unsigned int i;
+    int i;
     component->f = component->function_object->function(x, n);
     component->iteration_f++;
     component->function_object->gradient(g, x, n);

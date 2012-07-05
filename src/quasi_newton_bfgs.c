@@ -97,15 +97,15 @@ int
 quasi_newton_bfgs(
     double *x,
     double **b,
-    unsigned int n,
+    int n,
     FunctionObject *function_object,
     line_search_t line_search,
     LineSearchParameter *line_search_parameter,
     QuasiNewtonBFGSParameter *quasi_newton_bfgs_parameter
 ) {
     int status;
-    unsigned int i, j, iter;
-    unsigned long int memory_size;
+    int i, j, iter;
+    long int memory_size;
     double *storage, *storage_x, **storage_b,
            *d, *g, *x_temp, *g_temp, *s, *y, g_norm, *work;
     NonLinearComponent component;

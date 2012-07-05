@@ -23,9 +23,9 @@ double
 dot_product(
     const double *x,
     const double *y,
-    unsigned int n
+    int n
 ) {
-    unsigned int i;
+    int i;
     double dot;
     for (i = 1, dot = x[0] * y[0]; i < n; ++i)
         dot += x[i] * y[i];
@@ -38,9 +38,9 @@ update_step_vector(
     const double *x,
     double alpha,
     const double *y,
-    unsigned int n
+    int n
 ) {
-    unsigned int i;
+    int i;
     for (i = 0; i < n; ++i)
         x_temp[i] = x[i] + alpha * y[i];
 }
@@ -48,12 +48,12 @@ update_step_vector(
 double
 manhattan_norm(
     const double *x,
-    unsigned int n
+    int n
 ) {
     /*
      * norm = |x_0| + |x_1| + ... + |x_n|
      */
-    unsigned int i;
+    int i;
     double norm, fabs_x;
     for (i = 1, norm = fabs(x[0]); i < n; ++i)
         norm += fabs(x[i]);
@@ -63,12 +63,12 @@ manhattan_norm(
 double
 euclidean_norm(
     const double *x,
-    unsigned int n
+    int n
 ) {
     /*
      * norm = sqrt(x_0 * x_0 + x_1 * x_1 + ... + x_n * x_n)
      */
-    unsigned int i;
+    int i;
     double norm;
     for (i = 1, norm = x[0] * x[0]; i < n; ++i)
         norm += x[i] * x[i];
@@ -78,12 +78,12 @@ euclidean_norm(
 double
 infinity_norm(
     const double *x,
-    unsigned int n
+    int n
 ) {
     /*
      * norm = max(|x_0|, |x_1|, ..., |x_n|)
      */
-    unsigned int i;
+    int i;
     double norm, fabs_x;
     for (i = 1, norm = fabs(x[0]); i < n; ++i) {
         fabs_x = fabs(x[i]);
@@ -103,7 +103,7 @@ gauss_seidel(
     double **a,
     double *x,
     const double *b,
-    unsigned int n,
+    int n,
     double epsilon
 ) {
     /*
@@ -119,7 +119,7 @@ successive_over_relaxation(
     double **a,
     double *x,
     const double *b,
-    unsigned int n,
+    int n,
     double epsilon,
     double omega
 ) {
@@ -127,7 +127,7 @@ successive_over_relaxation(
      * TODO:
      *  Error Handling if you get a value of singular as Zero.
      */
-    unsigned int i, j;
+    int i, j;
     double norm, temp, x_old;
     do {
         for (i = 0, norm = 0.; i < n; ++i) {
