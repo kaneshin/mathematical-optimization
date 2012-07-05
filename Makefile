@@ -2,7 +2,7 @@
 #
 # File:         Makefile
 # Maintainer:   Shintaro Kaneko <kaneshin0120@gmail.com>
-# Last Change:  02-Jul-2012.
+# Last Change:  05-Jul-2012.
 #
 # Makefile for drivers
 
@@ -22,7 +22,7 @@ SRCDIR = src
 OBJDIR = bin
 SRCS = $(patsubst %,$(SRCDIR)/%,$(_SRCS))
 OBJS = $(patsubst %,$(OBJDIR)/%,$(_OBJS))
-PROGS = driver1 driver2
+PROGS = driver1 driver2 driver3 driver4 driver5 driver6 driver7
 
 all: $(PROGS)
 

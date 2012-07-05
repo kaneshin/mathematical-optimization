@@ -3,7 +3,7 @@
  *
  * File:        driver2.c
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 30-Jun-2012.
+ * Last Change: 05-Jul-2012.
  *
  * Problem:
  * 	minimize f(x) =
@@ -19,8 +19,20 @@
 
 #include "src/include/quasi_newton_bfgs.h"
 #include "src/include/line_search_component.h"
-#include "src/include/backtracking_wolfe.h"
 #include "src/include/non_linear_component.h"
+
+#define __LINE_SEARCH_METHOD 3
+#if __LINE_SEARCH_METHOD == 1
+    #include "src/include/armijo.h"
+#elif __LINE_SEARCH_METHOD == 2
+    #include "src/include/wolfe.h"
+#elif __LINE_SEARCH_METHOD == 3
+    #include "src/include/strong_wolfe.h"
+#elif __LINE_SEARCH_METHOD == 4
+    #include "src/include/backtracking_wolfe.h"
+#elif __LINE_SEARCH_METHOD == 5
+    #include "src/include/backtracking_strong_wolfe.h"
+#endif
 
 static double
 function(const double *x, unsigned int n);
@@ -42,10 +54,57 @@ main(int argc, char* argv[]) {
 
     Function.function = function;
     Function.gradient = gradient;
+#ifdef OPTIMIZATION_LINE_SEARCH_ARMIJO_H
+    default_armijo_parameter(&line_search_parameter);
+#endif
+#ifdef OPTIMIZATION_LINE_SEARCH_WOLFE_H
+    default_wolfe_parameter(&line_search_parameter);
+#endif
+#ifdef OPTIMIZATION_LINE_SEARCH_STRONG_WOLFE_H
+    default_strong_wolfe_parameter(&line_search_parameter);
+#endif
+#ifdef OPTIMIZATION_LINE_SEARCH_BACKTRACKING_WOLFE_H
     default_backtracking_wolfe_parameter(&line_search_parameter);
+#endif
+#ifdef OPTIMIZATION_LINE_SEARCH_BACKTRACKING_STRONG_WOLFE_H
+    default_backtracking_strong_wolfe_parameter(&line_search_parameter);
+#endif
 
-    quasi_newton_bfgs(x, NULL, n, &Function,
-            backtracking_wolfe, &line_search_parameter, NULL);
+    /* int
+     * quasi_newton_bfgs(
+     *     double *x,
+     *     double **b,
+     *     int n,
+     *     FunctionObject *function_object,
+     *     line_search_t line_search,
+     *     LineSearchParameter *line_search_parameter,
+     *     QuasiNewtonBFGSParameter *quasi_newton_bfgs_parameter
+     * )
+     */
+    quasi_newton_bfgs(
+            x,
+            NULL,
+            n,
+            &Function,
+#ifdef OPTIMIZATION_LINE_SEARCH_ARMIJO_H
+            armijo
+#endif
+#ifdef OPTIMIZATION_LINE_SEARCH_WOLFE_H
+            wolfe
+#endif
+#ifdef OPTIMIZATION_LINE_SEARCH_STRONG_WOLFE_H
+            strong_wolfe
+#endif
+#ifdef OPTIMIZATION_LINE_SEARCH_BACKTRACKING_WOLFE_H
+            backtracking_wolfe
+#endif
+#ifdef OPTIMIZATION_LINE_SEARCH_BACKTRACKING_STRONG_WOLFE_H
+            backtracking_strong_wolfe
+#endif
+            ,
+            &line_search_parameter,
+            NULL
+    );
 
     if (NULL != x) {
         free(x);

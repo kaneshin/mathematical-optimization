@@ -1,28 +1,23 @@
 /*
  * vim:set ts=8 sts=4 sw=4 tw=0:
  *
- * File:        driver1.c
+ * File:        driver3.c
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
  * Last Change: 05-Jul-2012.
  *
- * Problem:
- * 	minimize f(x) = (x1 - x2^2)^2 / 2 + (x2 - 2)^2 / 2
- *
- * 	gradient f(x) = [
- * 		gf(x)1 = x1 - x2^2
- * 		gf(x)2 = -2 * x2(x1 - x2^2) + x2 - 2
- * 	]
- *
- * 	x* = [ 4, 2 ]^T
+ * Problem:     Griewank function
  */
 
+#define PI 3.14159265358979323846264338327
+
 #include <stdlib.h>
+#include <math.h>
 
 #include "src/include/quasi_newton_bfgs.h"
-#include "src/include/non_linear_component.h"
 #include "src/include/line_search_component.h"
+#include "src/include/non_linear_component.h"
 
-#define __LINE_SEARCH_METHOD 1
+#define __LINE_SEARCH_METHOD 4
 #if __LINE_SEARCH_METHOD == 1
     #include "src/include/armijo.h"
 #elif __LINE_SEARCH_METHOD == 2
@@ -44,19 +39,14 @@ gradient(double *g, const double *x, unsigned int n);
 int
 main(int argc, char* argv[]) {
     unsigned int i, n;
-    double *x, **b;
+    double *x;
     FunctionObject Function;
     LineSearchParameter line_search_parameter;
 
-    n = 2;
+    n = 10;
     x = (double *)malloc(sizeof(double) * n);
-    b = (double **)malloc(sizeof(double *) * n);
-    *b = (double *)malloc(sizeof(double) * n * n);
-    for (i = 1; i < n; ++i) b[i] = b[i - 1] + n;
 
-    for (i = 0; i < n; ++i) x[i] = 0.;
-    b[0][0] = 1.;   b[0][1] = -2.;
-    b[1][0] = -2.;  b[1][1] = 6.;
+    for (i = 0; i < n; ++i) x[i] = 1.;
 
     Function.function = function;
     Function.gradient = gradient;
@@ -89,7 +79,7 @@ main(int argc, char* argv[]) {
      */
     quasi_newton_bfgs(
             x,
-            b,
+            NULL,
             n,
             &Function,
 #ifdef OPTIMIZATION_LINE_SEARCH_ARMIJO_H
@@ -116,25 +106,40 @@ main(int argc, char* argv[]) {
         free(x);
         x = NULL;
     }
-    if (NULL != b) {
-        if (NULL != *b) {
-            free(*b);
-            *b = NULL;
-        }
-        free(b);
-        b = NULL;
-    }
+
     return 0;
 }
 
 static double
 function(const double *x, unsigned int n) {
-    return (x[0] - x[1] * x[1]) * (x[0] - x[1] * x[1]) + (x[1] - 2.) * (x[1] - 2.) / 2.;
+    unsigned int i;
+    double f = 0., temp;
+    for (i = 0; i < n; ++i) {
+        f += x[i] * x[i];
+    }
+    f /= 4000.0;
+    temp = 1.0 ;
+    for (i = 0; i < n; ++i) {
+        temp *= cos(x[i] / (i + 1));
+    }
+    f = 1.0 + f - temp;
+    return f;
 }
 
 static void
 gradient(double *g, const double *x, unsigned int n) {
-    g[0] = x[0] - x[1] * x[1];
-    g[1] = -2. * x[1] * (x[0] - x[1] * x[1]) + x[1] - 2.;
+    unsigned int i, j;
+    double temp;
+    for (i = 0; i < n; ++i) {
+        // Compute product of cos(xj/j) from j=1 to n(but j!=i) into temp
+        temp = 1.0;
+        for (j = 0; j < i; ++j) {
+            temp *= cos(x[j] / (j + 1));
+        }
+        for (j = i + 1; j < n; ++j) {
+            temp *= cos(x[j] / (j + 1));
+        }
+        g[i] = x[i] / 2000. + (sin(x[i] / (i + i)) * temp) / (i + i);
+    }
 }
 
