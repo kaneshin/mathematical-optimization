@@ -4,7 +4,7 @@
  * File:        quasi_newton_bfgs.c
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 02-Jul-2012.
+ * Last Change: 05-Jul-2012.
  * TODO:
  *  Check elements of parameter
  *  Check each function of function_object
@@ -142,7 +142,11 @@ quasi_newton_bfgs(
             storage_b[i] = storage_b[i - 1] + n;
         }
         for (i = 0; i < n; ++i) {
-            for (j = 0; j < n; ++j) {
+            storage_b[i][i] = 1.;
+            for (j = 0; j < i; ++j) {
+                storage_b[i][j] = 0.;
+            }
+            for (j = i + 1; j < n; ++j) {
                 storage_b[i][j] = 0.;
             }
         }
