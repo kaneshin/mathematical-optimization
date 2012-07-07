@@ -21,7 +21,7 @@
 #include "src/include/line_search_component.h"
 #include "src/include/non_linear_component.h"
 
-#define __LINE_SEARCH_METHOD 3
+#define __LINE_SEARCH_METHOD 4
 #if __LINE_SEARCH_METHOD == 1
     #include "src/include/armijo.h"
 #elif __LINE_SEARCH_METHOD == 2
