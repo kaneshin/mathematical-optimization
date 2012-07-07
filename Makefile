@@ -2,13 +2,14 @@
 #
 # File:         Makefile
 # Maintainer:   Shintaro Kaneko <kaneshin0120@gmail.com>
-# Last Change:  05-Jul-2012.
+# Last Change:  08-Jul-2012.
 #
 # Makefile for drivers
 
 CC = gcc
 CFLAGS = -Wall -O3
 _SRCS = quasi_newton_bfgs.c\
+	conjugate_gradient.c\
 	armijo.c\
 	wolfe.c\
 	strong_wolfe.c\

@@ -3,7 +3,7 @@
  *
  * File:        driver1.c
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 05-Jul-2012.
+ * Last Change: 08-Jul-2012.
  *
  * Problem:
  * 	minimize f(x) = (x1 - x2^2)^2 / 2 + (x2 - 2)^2 / 2
@@ -18,11 +18,16 @@
 
 #include <stdlib.h>
 
-#include "src/include/quasi_newton_bfgs.h"
+#define __COMPUTING_METHOD 2
+#if __COMPUTING_METHOD == 1
+    #include "src/include/quasi_newton_bfgs.h"
+#elif __COMPUTING_METHOD == 2
+    #include "src/include/conjugate_gradient.h"
+#endif
 #include "src/include/non_linear_component.h"
 #include "src/include/line_search_component.h"
 
-#define __LINE_SEARCH_METHOD 1
+#define __LINE_SEARCH_METHOD 4
 #if __LINE_SEARCH_METHOD == 1
     #include "src/include/armijo.h"
 #elif __LINE_SEARCH_METHOD == 2
@@ -86,10 +91,26 @@ main(int argc, char* argv[]) {
      *     LineSearchParameter *line_search_parameter,
      *     QuasiNewtonBFGSParameter *quasi_newton_bfgs_parameter
      * )
+     * int
+     * conjugate_gradient(
+     *     double *x,
+     *     int n,
+     *     FunctionObject *function_object,
+     *     line_search_t line_search,
+     *     LineSearchParameter *line_search_parameter,
+     *     ConjugateGradientParameter *conjugate_gradient_parameter
+     * );
      */
+#ifdef OPTIMIZATION_QUASI_NEWTON_BFGS_H
     quasi_newton_bfgs(
+#endif
+#ifdef OPTIMIZATION_CONJUGATE_GRADIENT_H
+    conjugate_gradient(
+#endif
             x,
-            b,
+#ifdef OPTIMIZATION_QUASI_NEWTON_BFGS_H
+            NULL,
+#endif
             n,
             &Function,
 #ifdef OPTIMIZATION_LINE_SEARCH_ARMIJO_H
