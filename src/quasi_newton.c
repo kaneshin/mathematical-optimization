@@ -2,7 +2,7 @@
  * vim:set ts=8 sts=4 sw=4 tw=0:
  *
  * File:        quasi_newton.c
- * Version:     0.1.0
+ * Version:     0.2.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
  * Last Change: 09-Jul-2012.
  * TODO:
@@ -19,7 +19,7 @@
 #include "include/mymath.h"
 #include "include/print_message.h"
 
-static char *method_name = "Quasi-Newton";
+static char method_name[64] = "Quasi-Newton";
 
 typedef struct _QuasiNewtonFormula {
     int (*direction_search)(
