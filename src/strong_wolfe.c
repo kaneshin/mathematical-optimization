@@ -4,7 +4,7 @@
  * File:        strong_wolfe.c
  * Version:     0.2.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 08-Jul-2012.
+ * Last Change: 09-Jul-2012.
  */
 
 #include "include/strong_wolfe.h"
@@ -17,7 +17,7 @@ void
 default_strong_wolfe_parameter(
     LineSearchParameter *parameter
 ) {
-    parameter->upper_iter = 5000;
+    parameter->upper_iter = 100;
     parameter->initial_step = .5;
     parameter->step_width = 1.;
     parameter->xi = 0.001;
