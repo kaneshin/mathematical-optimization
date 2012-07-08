@@ -8,7 +8,7 @@
 
 CC = gcc
 CFLAGS = -Wall -O3
-_SRCS = quasi_newton_bfgs.c\
+_SRCS = quasi_newton.c\
 	conjugate_gradient.c\
 	armijo.c\
 	wolfe.c\

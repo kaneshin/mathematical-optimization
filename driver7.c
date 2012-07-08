@@ -15,7 +15,7 @@
 
 #define __COMPUTING_METHOD 2
 #if __COMPUTING_METHOD == 1
-    #include "src/include/quasi_newton_bfgs.h"
+    #include "src/include/quasi_newton.h"
 #elif __COMPUTING_METHOD == 2
     #include "src/include/conjugate_gradient.h"
 #endif
@@ -72,14 +72,14 @@ main(int argc, char* argv[]) {
 #endif
 
     /* int
-     * quasi_newton_bfgs(
+     * quasi_newton(
      *     double *x,
      *     double **b,
      *     int n,
      *     FunctionObject *function_object,
      *     line_search_t line_search,
      *     LineSearchParameter *line_search_parameter,
-     *     QuasiNewtonBFGSParameter *quasi_newton_bfgs_parameter
+     *     QuasiNewtonParameter *quasi_newton_parameter
      * )
      * int
      * conjugate_gradient(
@@ -91,14 +91,14 @@ main(int argc, char* argv[]) {
      *     ConjugateGradientParameter *conjugate_gradient_parameter
      * );
      */
-#ifdef OPTIMIZATION_QUASI_NEWTON_BFGS_H
-    quasi_newton_bfgs(
+#ifdef OPTIMIZATION_QUASI_NEWTON_H
+    quasi_newton(
 #endif
 #ifdef OPTIMIZATION_CONJUGATE_GRADIENT_H
     conjugate_gradient(
 #endif
             x,
-#ifdef OPTIMIZATION_QUASI_NEWTON_BFGS_H
+#ifdef OPTIMIZATION_QUASI_NEWTON_H
             NULL,
 #endif
             n,

@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "src/include/quasi_newton_bfgs.h"
+#include "src/include/quasi_newton.h"
 #include "src/include/line_search_component.h"
 #include "src/include/non_linear_component.h"
 
@@ -67,17 +67,17 @@ main(int argc, char* argv[]) {
 #endif
 
     /* int
-     * quasi_newton_bfgs(
+     * quasi_newton(
      *     double *x,
      *     double **b,
      *     int n,
      *     FunctionObject *function_object,
      *     line_search_t line_search,
      *     LineSearchParameter *line_search_parameter,
-     *     QuasiNewtonBFGSParameter *quasi_newton_bfgs_parameter
+     *     QuasiNewtonParameter *quasi_newton_parameter
      * )
      */
-    quasi_newton_bfgs(
+    quasi_newton(
             x,
             NULL,
             n,

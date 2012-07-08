@@ -1,7 +1,7 @@
 /*
  * vim:set ts=8 sts=4 sw=4 tw=0:
  *
- * File:        quasi_newton_bfgs.c
+ * File:        quasi_newton.c
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
  * Last Change: 08-Jul-2012.
@@ -10,7 +10,7 @@
  *  Check each function of function_object
  */
 
-#include "include/quasi_newton_bfgs.h"
+#include "include/quasi_newton.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,33 +19,33 @@
 #include "include/mymath.h"
 #include "include/print_message.h"
 
-static char *method_name = "Quasi-Newton on BFGS";
+static char *method_name = "Quasi-Newton";
 
-typedef struct _BFGSFormula {
+typedef struct _QuasiNewtonFormula {
     int (*direction_search)(
             double *,
             double **,
             double *,
             int
         );
-    int (*update_bfgs)(
+    int (*update_matrix)(
             double **,
             const double *,
             const double *,
             double *,
             int
         );
-} BFGSFormula;
+} QuasiNewtonFormula;
 
 static void
-default_quasi_newton_bfgs_parameter(
-    QuasiNewtonBFGSParameter *parameter
+default_quasi_newton_parameter(
+    QuasiNewtonParameter *parameter
 );
 
 static void
-set_bfgs_formula(
-    BFGSFormula *bfgs_formula,
-    QuasiNewtonBFGSParameter *parameter
+set_quasi_newton_formula(
+    QuasiNewtonFormula *quasi_newton_formula,
+    QuasiNewtonParameter *parameter
 );
 
 static int
@@ -57,7 +57,7 @@ direction_search_B_formula(
 );
 
 static int
-update_bfgs_B_formula(
+update_matrix_B_formula(
     double **B,
     const double *s,
     const double *y,
@@ -74,7 +74,7 @@ direction_search_H_formula(
 );
 
 static int
-update_bfgs_H_formula(
+update_matrix_H_formula(
     double **H,
     const double *s,
     const double *y,
@@ -83,14 +83,14 @@ update_bfgs_H_formula(
 );
 
 int
-quasi_newton_bfgs(
+quasi_newton(
     double *x,
     double **b,
     int n,
     FunctionObject *function_object,
     line_search_t line_search,
     LineSearchParameter *line_search_parameter,
-    QuasiNewtonBFGSParameter *quasi_newton_bfgs_parameter
+    QuasiNewtonParameter *quasi_newton_parameter
 ) {
     int status;
     int i, j, iter;
@@ -98,8 +98,8 @@ quasi_newton_bfgs(
     double *storage, *storage_x, **storage_b,
            *d, *g, *x_temp, *g_temp, *s, *y, g_norm, *work;
     NonLinearComponent component;
-    BFGSFormula bfgs_formula;
-    QuasiNewtonBFGSParameter _quasi_newton_bfgs_parameter;
+    QuasiNewtonFormula quasi_newton_formula;
+    QuasiNewtonParameter _quasi_newton_parameter;
     EvaluateObject evaluate_object;
 
     memory_size = sizeof(double) * n;
@@ -168,16 +168,16 @@ quasi_newton_bfgs(
 
     /* TODO:
      * Set defaule parameter for line_search_parameter
-     * Set defaule parameter in default_quasi_newton_bfgs_parameter
+     * Set defaule parameter in default_quasi_newton_parameter
      *
-     * set the parameter of Quasi-Newton method on BFGS */
-    if (NULL == quasi_newton_bfgs_parameter) {
-        quasi_newton_bfgs_parameter = &_quasi_newton_bfgs_parameter;
-        default_quasi_newton_bfgs_parameter(quasi_newton_bfgs_parameter);
+     * set the parameter of Quasi-Newton method */
+    if (NULL == quasi_newton_parameter) {
+        quasi_newton_parameter = &_quasi_newton_parameter;
+        default_quasi_newton_parameter(quasi_newton_parameter);
     }
 
     /* set the formula for solving this problem */
-    set_bfgs_formula(&bfgs_formula, quasi_newton_bfgs_parameter);
+    set_quasi_newton_formula(&quasi_newton_formula, quasi_newton_parameter);
 
     /* parameter of Line Search */
     if (NULL == line_search_parameter) {
@@ -190,9 +190,10 @@ quasi_newton_bfgs(
         status = NON_LINEAR_FUNCTION_NAN;
         goto result;
     }
-    for (iter = 1; iter <= quasi_newton_bfgs_parameter->upper_iter; ++iter) {
+    for (iter = 1; iter <= quasi_newton_parameter->upper_iter; ++iter) {
         /* search a direction of descent */
-        if (status = bfgs_formula.direction_search(d, b, g, n)) {
+        status = quasi_newton_formula.direction_search(d, b, g, n);
+        if (status) {
             goto result;
         }
         /* compute step width with a line search algorithm */
@@ -222,7 +223,7 @@ quasi_newton_bfgs(
 
         print_iteration_info(iter, g_norm, &component);
 
-        if (g_norm < quasi_newton_bfgs_parameter->tolerance) {
+        if (g_norm < quasi_newton_parameter->tolerance) {
             status = NON_LINEAR_SATISFIED;
             goto result;
         }
@@ -232,12 +233,13 @@ quasi_newton_bfgs(
             s[i] = x_temp[i] - x[i];
             y[i] = g_temp[i] - g[i];
         }
-        /* update matrix of bfgs */
-        switch (status = bfgs_formula.update_bfgs(b, s, y, x, n)) {
+        /* update matrix */
+        status = quasi_newton_formula.update_matrix(b, s, y, x, n);
+        switch (status) {
             case NON_LINEAR_FUNCTION_NAN:
                 goto result;
             case NON_LINEAR_NOT_UPDATE:
-                printf("* Matrix is NOT updated on BFGS\n");
+                printf("* Matrix is NOT updated\n");
             case NON_LINEAR_SATISFIED:
             default:
                 break;
@@ -272,8 +274,8 @@ result:
 }
 
 static void
-default_quasi_newton_bfgs_parameter(
-    QuasiNewtonBFGSParameter *parameter
+default_quasi_newton_parameter(
+    QuasiNewtonParameter *parameter
 ) {
     parameter->formula = 'h';
     parameter->tolerance = 1.e-8;
@@ -281,22 +283,22 @@ default_quasi_newton_bfgs_parameter(
 }
 
 static void
-set_bfgs_formula(
-    BFGSFormula *bfgs_formula,
-    QuasiNewtonBFGSParameter *parameter
+set_quasi_newton_formula(
+    QuasiNewtonFormula *quasi_newton_formula,
+    QuasiNewtonParameter *parameter
 ) {
     switch (parameter->formula) {
         case 'b': case 'B':
-            bfgs_formula->direction_search = direction_search_B_formula;
-            bfgs_formula->update_bfgs = update_bfgs_B_formula;
+            quasi_newton_formula->direction_search = direction_search_B_formula;
+            quasi_newton_formula->update_matrix = update_matrix_B_formula;
             break;
         case 'h': case 'H':
-            bfgs_formula->direction_search = direction_search_H_formula;
-            bfgs_formula->update_bfgs = update_bfgs_H_formula;
+            quasi_newton_formula->direction_search = direction_search_H_formula;
+            quasi_newton_formula->update_matrix = update_matrix_H_formula;
             break;
         default:
-            bfgs_formula->direction_search = direction_search_H_formula;
-            bfgs_formula->update_bfgs = update_bfgs_H_formula;
+            quasi_newton_formula->direction_search = direction_search_H_formula;
+            quasi_newton_formula->update_matrix = update_matrix_H_formula;
             break;
     }
 }
@@ -317,7 +319,7 @@ direction_search_B_formula(
 }
 
 static int
-update_bfgs_B_formula(
+update_matrix_B_formula(
     double **B,
     const double *s,
     const double *y,
@@ -370,7 +372,7 @@ direction_search_H_formula(
 }
 
 static int
-update_bfgs_H_formula(
+update_matrix_H_formula(
     double **H,
     const double *s,
     const double *y,

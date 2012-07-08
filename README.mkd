@@ -3,8 +3,9 @@ Mathematical Optimization
 
 ##Non-Linear Programming Solving Method
 
-- BFGS with B formula
-- BFGS with H formula
+- Quasi-Newton BFGS with B formula
+- Quasi-Newton BFGS with H formula
+- Conjugate Gradient
 
 ##Line Search Condition
 
