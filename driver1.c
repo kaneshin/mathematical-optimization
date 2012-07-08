@@ -109,7 +109,7 @@ main(int argc, char* argv[]) {
 #endif
             x,
 #ifdef OPTIMIZATION_QUASI_NEWTON_H
-            NULL,
+            b,
 #endif
             n,
             &Function,
