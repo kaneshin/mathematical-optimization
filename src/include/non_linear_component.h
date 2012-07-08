@@ -4,7 +4,7 @@
  * File:        non_linear_component.h
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 08-Jul-2012.
+ * Last Change: 09-Jul-2012.
  */
 
 #ifndef OPTIMIZATION_NON_LINEAR_COMPONENT_H

@@ -49,7 +49,7 @@ set_quasi_newton_formula(
 );
 
 static int
-direction_search_B_formula(
+direction_search_bfgs_B_formula(
     double *d,
     double **B,
     double *g,
@@ -57,7 +57,7 @@ direction_search_B_formula(
 );
 
 static int
-update_matrix_B_formula(
+update_matrix_bfgs_B_formula(
     double **B,
     const double *s,
     const double *y,
@@ -66,7 +66,7 @@ update_matrix_B_formula(
 );
 
 static int
-direction_search_H_formula(
+direction_search_bfgs_H_formula(
     double *d,
     double **H,
     double *g,
@@ -74,7 +74,7 @@ direction_search_H_formula(
 );
 
 static int
-update_matrix_H_formula(
+update_matrix_bfgs_H_formula(
     double **H,
     const double *s,
     const double *y,
@@ -92,20 +92,26 @@ quasi_newton(
     LineSearchParameter *line_search_parameter,
     QuasiNewtonParameter *quasi_newton_parameter
 ) {
-    int status;
-    int i, j, iter;
+    int i, j, iter, status, storage_b_num, storage_num;
     long int memory_size;
-    double *storage, *storage_x, **storage_b,
-           *d, *g, *x_temp, *g_temp, *s, *y, g_norm, *work;
+    double g_norm,
+           *storage, *storage_x, **storage_b,
+           *d, *g, *x_temp, *g_temp, *work, *s, *y;
     NonLinearComponent component;
     QuasiNewtonFormula quasi_newton_formula;
     QuasiNewtonParameter _quasi_newton_parameter;
     EvaluateObject evaluate_object;
 
+    /* memory_size is for doing memcpy */
     memory_size = sizeof(double) * n;
-    /* allocate memory to storage for x_temp and g_temp */
+    /* prepare a number of vector for storage_b and storage */
+    storage_b_num = n;
+    storage_num = 6;
+    /*
+     * allocate memory to storage
+     */
     if (NULL == x) {
-        /* allocate memory to storage_x */
+        /* allocate memory to storage_x for x as a vector */
         if (NULL == (storage_x = (double *)malloc(memory_size))) {
             status = NON_LINEAR_OUT_OF_MEMORY;
             goto result;
@@ -118,19 +124,23 @@ quasi_newton(
         storage_x = NULL;
     }
     if (NULL == b) {
-        /* allocate memory to storage_b */
-        if (NULL == (storage_b = (double **)malloc(sizeof(double *) * n))) {
+        /* allocate memory to storage_b for b as a matrix
+         *      size: storage_b_num * n */
+        if (NULL == (storage_b = (double **)malloc(
+                        sizeof(double *) * storage_b_num))) {
             status = NON_LINEAR_OUT_OF_MEMORY;
             goto result;
         }
-        if (NULL == (*storage_b = (double *)malloc(memory_size * n))) {
+        if (NULL == (*storage_b = (double *)malloc(
+                        memory_size * storage_b_num))) {
             status = NON_LINEAR_OUT_OF_MEMORY;
             goto result;
         }
-        for (i = 1; i < n; ++i) {
+        for (i = 1; i < storage_b_num; ++i) {
             storage_b[i] = storage_b[i - 1] + n;
         }
-        for (i = 0; i < n; ++i) {
+        /* initialize a matrix as identify */
+        for (i = 0; i < storage_b_num; ++i) {
             storage_b[i][i] = 1.;
             for (j = 0; j < i; ++j) {
                 storage_b[i][j] = 0.;
@@ -143,8 +153,9 @@ quasi_newton(
     } else {
         storage_b = NULL;
     }
-    /* allocate memory to storage for d, g, x_temp, g_temp, s, y and work */
-    if (NULL == (storage = (double *)malloc(memory_size * 6))) {
+    /* allocate memory to storage for d, g, x_temp, g_temp and
+     * work (s and y) */
+    if (NULL == (storage = (double *)malloc(memory_size * storage_num))) {
         status = NON_LINEAR_OUT_OF_MEMORY;
         goto result;
     }
@@ -152,12 +163,13 @@ quasi_newton(
     g = d + n;
     x_temp = g + n;
     g_temp = x_temp + n;
-    s = g_temp + n;
+    /* work share memory with s and y */
+    s = work = g_temp + n;
     y = s + n;
-    work = s;
 
     /* make sure that f and gf of this problem exist */
-    if (NULL == function_object->function || NULL == function_object->gradient) {
+    if (NULL == function_object->function
+            || NULL == function_object->gradient) {
         status = NON_LINEAR_NO_FUNCTION;
         goto result;
     }
@@ -166,11 +178,7 @@ quasi_newton(
     initialize_non_linear_component(
             method_name, function_object, &evaluate_object, &component);
 
-    /* TODO:
-     * Set defaule parameter for line_search_parameter
-     * Set defaule parameter in default_quasi_newton_parameter
-     *
-     * set the parameter of Quasi-Newton method */
+    /* set the parameter of Quasi-Newton method */
     if (NULL == quasi_newton_parameter) {
         quasi_newton_parameter = &_quasi_newton_parameter;
         default_quasi_newton_parameter(quasi_newton_parameter);
@@ -185,8 +193,11 @@ quasi_newton(
         goto result;
     }
 
-    /* start to compute for solving this problem */
-    if (NON_LINEAR_FUNCTION_OBJECT_NAN == evaluate_object.gradient(g, x, n, &component)) {
+    /*
+     * start to compute for solving this problem
+     */
+    if (NON_LINEAR_FUNCTION_OBJECT_NAN
+            == evaluate_object.gradient(g, x, n, &component)) {
         status = NON_LINEAR_FUNCTION_NAN;
         goto result;
     }
@@ -289,22 +300,22 @@ set_quasi_newton_formula(
 ) {
     switch (parameter->formula) {
         case 'b': case 'B':
-            quasi_newton_formula->direction_search = direction_search_B_formula;
-            quasi_newton_formula->update_matrix = update_matrix_B_formula;
+            quasi_newton_formula->direction_search = direction_search_bfgs_B_formula;
+            quasi_newton_formula->update_matrix = update_matrix_bfgs_B_formula;
             break;
         case 'h': case 'H':
-            quasi_newton_formula->direction_search = direction_search_H_formula;
-            quasi_newton_formula->update_matrix = update_matrix_H_formula;
+            quasi_newton_formula->direction_search = direction_search_bfgs_H_formula;
+            quasi_newton_formula->update_matrix = update_matrix_bfgs_H_formula;
             break;
         default:
-            quasi_newton_formula->direction_search = direction_search_H_formula;
-            quasi_newton_formula->update_matrix = update_matrix_H_formula;
+            quasi_newton_formula->direction_search = direction_search_bfgs_H_formula;
+            quasi_newton_formula->update_matrix = update_matrix_bfgs_H_formula;
             break;
     }
 }
 
 static int
-direction_search_B_formula(
+direction_search_bfgs_B_formula(
     double *d,
     double **B,
     double *g,
@@ -319,7 +330,7 @@ direction_search_B_formula(
 }
 
 static int
-update_matrix_B_formula(
+update_matrix_bfgs_B_formula(
     double **B,
     const double *s,
     const double *y,
@@ -353,7 +364,7 @@ update_matrix_B_formula(
 }
 
 static int
-direction_search_H_formula(
+direction_search_bfgs_H_formula(
     double *d,
     double **H,
     double *g,
@@ -372,7 +383,7 @@ direction_search_H_formula(
 }
 
 static int
-update_matrix_H_formula(
+update_matrix_bfgs_H_formula(
     double **H,
     const double *s,
     const double *y,

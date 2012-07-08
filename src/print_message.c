@@ -4,7 +4,7 @@
  * File:        print_message.c
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 08-Jul-2012.
+ * Last Change: 09-Jul-2012.
  * TODO:
  */
 
