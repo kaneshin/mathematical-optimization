@@ -4,7 +4,7 @@
  * File:        armijo.c
  * Version:     0.2.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 02-Jul-2012.
+ * Last Change: 08-Jul-2012.
  */
 
 #include "include/armijo.h"
@@ -41,13 +41,13 @@ armijo(
 
     width = parameter->initial_step;
     beta = parameter->step_width;
-    if (NON_LINEAR_FUNCTION_NAN == evaluate_object->function(x, n, component))
+    if (NON_LINEAR_FUNCTION_OBJECT_NAN == evaluate_object->function(x, n, component))
         return LINE_SEARCH_FUNCTION_NAN;
     f_x = component->f;
     gd = dot_product(g, d, n);
     for (iter = 1; iter <= parameter->upper_iter; ++iter) {
         update_step_vector(x_temp, x, beta, d, n);
-        if (NON_LINEAR_FUNCTION_NAN
+        if (NON_LINEAR_FUNCTION_OBJECT_NAN
                 == evaluate_object->function(x_temp, n, component))
             return LINE_SEARCH_FUNCTION_NAN;
         if (component->f <= f_x + parameter->xi * beta * gd) {

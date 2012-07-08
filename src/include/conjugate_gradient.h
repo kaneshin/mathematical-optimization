@@ -13,17 +13,6 @@
 #include "non_linear_component.h"
 #include "line_search_component.h"
 
-enum ConjugateGradientStatus {
-    CONJUGATE_GRADIENT_FUNCTION_NAN = -8,
-    CONJUGATE_GRADIENT_OUT_OF_MEMORY,
-    CONJUGATE_GRADIENT_NO_FUNCTION,
-    CONJUGATE_GRADIENT_NO_PARAMETER,
-    CONJUGATE_GRADIENT_SATISFIED = 0,
-    CONJUGATE_GRADIENT_FAILED,
-    CONJUGATE_GRADIENT_LINE_SEARCH_FAILED,
-    CONJUGATE_GRADIENT_NOT_UPDATE,
-};
-
 typedef int (*line_search_t)(
     double *,
     const double *,

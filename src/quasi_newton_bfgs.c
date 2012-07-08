@@ -4,7 +4,7 @@
  * File:        quasi_newton_bfgs.c
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 05-Jul-2012.
+ * Last Change: 08-Jul-2012.
  * TODO:
  *  Check elements of parameter
  *  Check each function of function_object
@@ -17,6 +17,9 @@
 #include <string.h>
 
 #include "include/mymath.h"
+#include "include/print_message.h"
+
+static char *method_name = "Quasi-Newton on BFGS";
 
 typedef struct _BFGSFormula {
     int (*direction_search)(
@@ -79,20 +82,6 @@ update_bfgs_H_formula(
     int n
 );
 
-static void
-print_iteration_info(
-    int iteration,
-    double g_norm,
-    NonLinearComponent *component
-);
-
-static void
-print_result_info(
-    int status,
-    int iteration,
-    NonLinearComponent *component
-);
-
 int
 quasi_newton_bfgs(
     double *x,
@@ -118,7 +107,7 @@ quasi_newton_bfgs(
     if (NULL == x) {
         /* allocate memory to storage_x */
         if (NULL == (storage_x = (double *)malloc(memory_size))) {
-            status = QUASI_NEWTON_BFGS_OUT_OF_MEMORY;
+            status = NON_LINEAR_OUT_OF_MEMORY;
             goto result;
         }
         for (i = 0; i < n; ++i) {
@@ -131,11 +120,11 @@ quasi_newton_bfgs(
     if (NULL == b) {
         /* allocate memory to storage_b */
         if (NULL == (storage_b = (double **)malloc(sizeof(double *) * n))) {
-            status = QUASI_NEWTON_BFGS_OUT_OF_MEMORY;
+            status = NON_LINEAR_OUT_OF_MEMORY;
             goto result;
         }
         if (NULL == (*storage_b = (double *)malloc(memory_size * n))) {
-            status = QUASI_NEWTON_BFGS_OUT_OF_MEMORY;
+            status = NON_LINEAR_OUT_OF_MEMORY;
             goto result;
         }
         for (i = 1; i < n; ++i) {
@@ -156,7 +145,7 @@ quasi_newton_bfgs(
     }
     /* allocate memory to storage for d, g, x_temp, g_temp, s, y and work */
     if (NULL == (storage = (double *)malloc(memory_size * 8))) {
-        status = QUASI_NEWTON_BFGS_OUT_OF_MEMORY;
+        status = NON_LINEAR_OUT_OF_MEMORY;
         goto result;
     }
     d = storage;
@@ -169,12 +158,13 @@ quasi_newton_bfgs(
 
     /* make sure that f and gf of this problem exist */
     if (NULL == function_object->function || NULL == function_object->gradient) {
-        status = QUASI_NEWTON_BFGS_NO_FUNCTION;
+        status = NON_LINEAR_NO_FUNCTION;
         goto result;
     }
 
     /* set the component of Non-Linear Programming */
-    initialize_non_linear_component(function_object, &evaluate_object, &component);
+    initialize_non_linear_component(
+            method_name, function_object, &evaluate_object, &component);
 
     /* TODO:
      * Set defaule parameter for line_search_parameter
@@ -191,13 +181,13 @@ quasi_newton_bfgs(
 
     /* parameter of Line Search */
     if (NULL == line_search_parameter) {
-        status = QUASI_NEWTON_BFGS_NO_PARAMETER;
+        status = NON_LINEAR_NO_PARAMETER;
         goto result;
     }
 
     /* start to compute for solving this problem */
-    if (NON_LINEAR_FUNCTION_NAN == evaluate_object.gradient(g, x, n, &component)) {
-        status = QUASI_NEWTON_BFGS_FUNCTION_NAN;
+    if (NON_LINEAR_FUNCTION_OBJECT_NAN == evaluate_object.gradient(g, x, n, &component)) {
+        status = NON_LINEAR_FUNCTION_NAN;
         goto result;
     }
     for (iter = 1; iter <= quasi_newton_bfgs_parameter->upper_iter; ++iter) {
@@ -209,10 +199,10 @@ quasi_newton_bfgs(
         switch (line_search(work, x, g, d, n,
                     &evaluate_object, line_search_parameter, &component)) {
             case LINE_SEARCH_FUNCTION_NAN:
-                status = QUASI_NEWTON_BFGS_FUNCTION_NAN;
+                status = NON_LINEAR_FUNCTION_NAN;
                 goto result;
             case LINE_SEARCH_FAILED:
-                status = QUASI_NEWTON_BFGS_LINE_SEARCH_FAILED;
+                status = NON_LINEAR_LINE_SEARCH_FAILED;
                 goto result;
             default:
                 break;
@@ -222,9 +212,9 @@ quasi_newton_bfgs(
             x_temp[i] = x[i] + component.alpha * d[i];
         }
         /* update g_temp = gradient(x_temp) */
-        if (NON_LINEAR_FUNCTION_NAN ==
+        if (NON_LINEAR_FUNCTION_OBJECT_NAN ==
                 evaluate_object.gradient(g_temp, x_temp, n, &component)) {
-            status = QUASI_NEWTON_BFGS_FUNCTION_NAN;
+            status = NON_LINEAR_FUNCTION_NAN;
             goto result;
         }
         /*TODO: compute g_norm */
@@ -233,7 +223,7 @@ quasi_newton_bfgs(
         print_iteration_info(iter, g_norm, &component);
 
         if (g_norm < quasi_newton_bfgs_parameter->tolerance) {
-            status = QUASI_NEWTON_BFGS_SATISFIED;
+            status = NON_LINEAR_SATISFIED;
             goto result;
         }
 
@@ -244,11 +234,11 @@ quasi_newton_bfgs(
         }
         /* update matrix of bfgs */
         switch (status = bfgs_formula.update_bfgs(b, s, y, x, n)) {
-            case QUASI_NEWTON_BFGS_FUNCTION_NAN:
+            case NON_LINEAR_FUNCTION_NAN:
                 goto result;
-            case QUASI_NEWTON_BFGS_NOT_UPDATE:
+            case NON_LINEAR_NOT_UPDATE:
                 printf("* Matrix is NOT updated on BFGS\n");
-            case QUASI_NEWTON_BFGS_SATISFIED:
+            case NON_LINEAR_SATISFIED:
             default:
                 break;
         }
@@ -341,23 +331,23 @@ update_bfgs_B_formula(
         for (j = 0, Bsi = 0.; j < n; j++) {
             Bsi += B[i][j] * s[j];
         }
-        if (Bsi != Bsi) return QUASI_NEWTON_BFGS_FUNCTION_NAN;
+        if (Bsi != Bsi) return NON_LINEAR_FUNCTION_NAN;
         Bs[i] = Bsi;
     }
     for (i = 1, sBs = s[0] * Bs[0], sy = s[0] * y[0]; i < n; ++i) {
         sBs += s[i] * Bs[i];
         sy += s[i] * y[i];
     }
-    if (sBs != sBs || sy != sy) return QUASI_NEWTON_BFGS_FUNCTION_NAN;
+    if (sBs != sBs || sy != sy) return NON_LINEAR_FUNCTION_NAN;
     if (sy > 0) {
         for (i = 0; i < n; ++i) {
             for (j = 0; j < n; j++) {
                 B[i][j] += - Bs[i] * Bs[j] / sBs + y[i] * y[j] / sy;
             }
         }
-        return QUASI_NEWTON_BFGS_SATISFIED;
+        return NON_LINEAR_SATISFIED;
     }
-    return QUASI_NEWTON_BFGS_NOT_UPDATE;
+    return NON_LINEAR_NOT_UPDATE;
 }
 
 static int
@@ -373,10 +363,10 @@ direction_search_H_formula(
         for (j = 0, Hg = 0.; j < n; j++) {
             Hg -= H[i][j] * g[j];
         }
-        if (Hg != Hg) return QUASI_NEWTON_BFGS_FUNCTION_NAN;
+        if (Hg != Hg) return NON_LINEAR_FUNCTION_NAN;
         d[i] = Hg;
     }
-    return QUASI_NEWTON_BFGS_SATISFIED;
+    return NON_LINEAR_SATISFIED;
 }
 
 static int
@@ -394,14 +384,14 @@ update_bfgs_H_formula(
         for (j = 0, Hyi = 0.; j < n; j++) {
             Hyi += H[i][j] * y[j];
         }
-        if (Hyi != Hyi) return QUASI_NEWTON_BFGS_FUNCTION_NAN;
+        if (Hyi != Hyi) return NON_LINEAR_FUNCTION_NAN;
         Hy[i] = Hyi;
     }
     for (i = 1, yHy = y[0] * Hy[0], sy = s[0] * y[0]; i < n; ++i) {
         yHy += y[i] * Hy[i];
         sy += s[i] * y[i];
     }
-    if (yHy != yHy || sy != sy) return QUASI_NEWTON_BFGS_FUNCTION_NAN;
+    if (yHy != yHy || sy != sy) return NON_LINEAR_FUNCTION_NAN;
     if (sy > 0) {
         for (i = 0; i < n; ++i) {
             for (j = 0; j < n; j++) {
@@ -409,64 +399,8 @@ update_bfgs_H_formula(
                                 + (1 + yHy / sy) * s[i] * s[j] / sy ;
             }
         }
-        return QUASI_NEWTON_BFGS_SATISFIED;
+        return NON_LINEAR_SATISFIED;
     }
-    return QUASI_NEWTON_BFGS_NOT_UPDATE;
-}
-
-static void
-print_iteration_info(
-    int iteration,
-    double g_norm,
-    NonLinearComponent *component
-) {
-    printf("\n == iteration: %7d ================================\n", iteration);
-    printf("step width parameter:  \t%13.6e\n", component->alpha);
-    printf("-------------------------------------------------------\n");
-    printf("function value:        \t%13.6e\n", component->f);
-    printf("||gf(x_k+1)||_infinity = %e\n", g_norm);
-    printf("-------------------------------------------------------\n");
-}
-
-static void
-print_result_info(
-    int status,
-    int iteration,
-    NonLinearComponent *component
-) {
-    printf("\n\n\nCompute status: %3d\n", status);
-    switch (status) {
-        case QUASI_NEWTON_BFGS_SATISFIED:
-            printf("Satisfied: Quasi-Newton Method (BFGS) is finished\n");
-            break;
-        case QUASI_NEWTON_BFGS_FUNCTION_NAN:
-            printf("Failed: Function value is Not a Number\n");
-            break;
-        case QUASI_NEWTON_BFGS_OUT_OF_MEMORY:
-            printf("Failed: Out of Memory\n");
-            break;
-        case QUASI_NEWTON_BFGS_NO_FUNCTION:
-            printf("Failed: Function Object is not defined\n");
-            break;
-        case QUASI_NEWTON_BFGS_NO_PARAMETER:
-            printf("Failed: Parameter of line search is not defined\n");
-            break;
-        case QUASI_NEWTON_BFGS_FAILED:
-            printf("Failed: FAILED\n");
-            break;
-        case QUASI_NEWTON_BFGS_LINE_SEARCH_FAILED:
-            printf("Failed: Line Search is failed\n");
-            break;
-        default:
-            break;
-    }
-    if (status >= QUASI_NEWTON_BFGS_SATISFIED) {
-        printf("-------------------------------------------------------\n");
-        printf("iterations:          %12d\n", iteration);
-        printf("function evaluations:%12d\n", component->iteration_f);
-        printf("gradient evaluations:%12d\n", component->iteration_g);
-        printf("=======================================================\n");
-        printf("function value:      \t%13.6e\n", component->f);
-    }
+    return NON_LINEAR_NOT_UPDATE;
 }
 

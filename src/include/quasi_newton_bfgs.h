@@ -4,7 +4,7 @@
  * File:        quasi_newton_bfgs.h
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 02-Jul-2012.
+ * Last Change: 08-Jul-2012.
  */
 
 #ifndef OPTIMIZATION_QUASI_NEWTON_BFGS_H
@@ -12,17 +12,6 @@
 
 #include "non_linear_component.h"
 #include "line_search_component.h"
-
-enum QuasiNewtonBFGSStatus {
-    QUASI_NEWTON_BFGS_FUNCTION_NAN = -8,
-    QUASI_NEWTON_BFGS_OUT_OF_MEMORY,
-    QUASI_NEWTON_BFGS_NO_FUNCTION,
-    QUASI_NEWTON_BFGS_NO_PARAMETER,
-    QUASI_NEWTON_BFGS_SATISFIED = 0,
-    QUASI_NEWTON_BFGS_FAILED,
-    QUASI_NEWTON_BFGS_LINE_SEARCH_FAILED,
-    QUASI_NEWTON_BFGS_NOT_UPDATE,
-};
 
 typedef int (*line_search_t)(
     double *,

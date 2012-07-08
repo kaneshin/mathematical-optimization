@@ -15,24 +15,13 @@
 #include <string.h>
 
 #include "include/mymath.h"
+#include "include/print_message.h"
+
+static char *method_name = "Conjugate Gradient";
 
 static void
 default_conjugate_gradient_parameter(
     ConjugateGradientParameter *parameter
-);
-
-static void
-print_iteration_info(
-    int iteration,
-    double g_norm,
-    NonLinearComponent *component
-);
-
-static void
-print_result_info(
-    int status,
-    int iteration,
-    NonLinearComponent *component
 );
 
 int
@@ -58,7 +47,7 @@ conjugate_gradient(
     if (NULL == x) {
         /* allocate memory to storage_x */
         if (NULL == (storage_x = (double *)malloc(memory_size))) {
-            status = CONJUGATE_GRADIENT_OUT_OF_MEMORY;
+            status = NON_LINEAR_OUT_OF_MEMORY;
             goto result;
         }
         for (i = 0; i < n; ++i) {
@@ -70,7 +59,7 @@ conjugate_gradient(
     }
     /* allocate memory to storage for d, g, x_temp, g_temp, s, y and work */
     if (NULL == (storage = (double *)malloc(memory_size * 6))) {
-        status = CONJUGATE_GRADIENT_OUT_OF_MEMORY;
+        status = NON_LINEAR_OUT_OF_MEMORY;
         goto result;
     }
     d = storage;
@@ -81,12 +70,13 @@ conjugate_gradient(
 
     /* make sure that f and gf of this problem exist */
     if (NULL == function_object->function || NULL == function_object->gradient) {
-        status = CONJUGATE_GRADIENT_NO_FUNCTION;
+        status = NON_LINEAR_NO_FUNCTION;
         goto result;
     }
 
     /* set the component of Non-Linear Programming */
-    initialize_non_linear_component(function_object, &evaluate_object, &component);
+    initialize_non_linear_component(
+            method_name, function_object, &evaluate_object, &component);
 
     /* TODO:
      * Set defaule parameter for line_search_parameter
@@ -100,13 +90,13 @@ conjugate_gradient(
 
     /* parameter of Line Search */
     if (NULL == line_search_parameter) {
-        status = CONJUGATE_GRADIENT_NO_PARAMETER;
+        status = NON_LINEAR_NO_PARAMETER;
         goto result;
     }
 
     /* start to compute for solving this problem */
-    if (NON_LINEAR_FUNCTION_NAN == evaluate_object.gradient(g, x, n, &component)) {
-        status = CONJUGATE_GRADIENT_FUNCTION_NAN;
+    if (NON_LINEAR_FUNCTION_OBJECT_NAN == evaluate_object.gradient(g, x, n, &component)) {
+        status = NON_LINEAR_FUNCTION_NAN;
         goto result;
     }
     /* compute initial vector of direction */
@@ -118,10 +108,10 @@ conjugate_gradient(
         switch (line_search(work, x, g, d, n,
                     &evaluate_object, line_search_parameter, &component)) {
             case LINE_SEARCH_FUNCTION_NAN:
-                status = CONJUGATE_GRADIENT_FUNCTION_NAN;
+                status = NON_LINEAR_FUNCTION_NAN;
                 goto result;
             case LINE_SEARCH_FAILED:
-                status = CONJUGATE_GRADIENT_LINE_SEARCH_FAILED;
+                status = NON_LINEAR_LINE_SEARCH_FAILED;
                 goto result;
             default:
                 break;
@@ -131,9 +121,9 @@ conjugate_gradient(
             x_temp[i] = x[i] + component.alpha * d[i];
         }
         /* update g_temp = gradient(x_temp) */
-        if (NON_LINEAR_FUNCTION_NAN
+        if (NON_LINEAR_FUNCTION_OBJECT_NAN
                 == evaluate_object.gradient(g_temp, x_temp, n, &component)) {
-            status = CONJUGATE_GRADIENT_FUNCTION_NAN;
+            status = NON_LINEAR_FUNCTION_NAN;
             goto result;
         }
         /* compute infinity-norm of gradient */
@@ -142,7 +132,7 @@ conjugate_gradient(
         print_iteration_info(iter, g_norm, &component);
 
         if (g_norm < conjugate_gradient_parameter->tolerance) {
-            status = CONJUGATE_GRADIENT_SATISFIED;
+            status = NON_LINEAR_SATISFIED;
             goto result;
         }
 
@@ -187,61 +177,5 @@ default_conjugate_gradient_parameter(
 ) {
     parameter->tolerance = 1.e-8;
     parameter->upper_iter = 5000;
-}
-
-static void
-print_iteration_info(
-    int iteration,
-    double g_norm,
-    NonLinearComponent *component
-) {
-    printf("\n == iteration: %7d ================================\n", iteration);
-    printf("step width parameter:  \t%13.6e\n", component->alpha);
-    printf("-------------------------------------------------------\n");
-    printf("function value:        \t%13.6e\n", component->f);
-    printf("||gf(x_k+1)||_infinity = %e\n", g_norm);
-    printf("-------------------------------------------------------\n");
-}
-
-static void
-print_result_info(
-    int status,
-    int iteration,
-    NonLinearComponent *component
-) {
-    printf("\n\n\nCompute status: %3d\n", status);
-    switch (status) {
-        case CONJUGATE_GRADIENT_SATISFIED:
-            printf("Satisfied: Conjugate Gradient Method is finished\n");
-            break;
-        case CONJUGATE_GRADIENT_FUNCTION_NAN:
-            printf("Failed: Function value is Not a Number\n");
-            break;
-        case CONJUGATE_GRADIENT_OUT_OF_MEMORY:
-            printf("Failed: Out of Memory\n");
-            break;
-        case CONJUGATE_GRADIENT_NO_FUNCTION:
-            printf("Failed: Function Object is not defined\n");
-            break;
-        case CONJUGATE_GRADIENT_NO_PARAMETER:
-            printf("Failed: Parameter of line search is not defined\n");
-            break;
-        case CONJUGATE_GRADIENT_FAILED:
-            printf("Failed: FAILED\n");
-            break;
-        case CONJUGATE_GRADIENT_LINE_SEARCH_FAILED:
-            printf("Failed: Line Search is failed\n");
-            break;
-        default:
-            break;
-    }
-    if (status >= CONJUGATE_GRADIENT_SATISFIED) {
-        printf("-------------------------------------------------------\n");
-        printf("iterations:          %12d\n", iteration);
-        printf("function evaluations:%12d\n", component->iteration_f);
-        printf("gradient evaluations:%12d\n", component->iteration_g);
-        printf("=======================================================\n");
-        printf("function value:      \t%13.6e\n", component->f);
-    }
 }
 

@@ -17,7 +17,8 @@ _SRCS = quasi_newton_bfgs.c\
 	backtracking_strong_wolfe.c\
 	line_search_component.c\
 	non_linear_component.c\
-	mymath.c
+	mymath.c\
+	print_message.c
 _OBJS = $(_SRCS:%.c=%.o)
 SRCDIR = src
 OBJDIR = bin
