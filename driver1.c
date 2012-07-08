@@ -3,7 +3,7 @@
  *
  * File:        driver1.c
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 08-Jul-2012.
+ * Last Change: 09-Jul-2012.
  *
  * Problem:
  * 	minimize f(x) = (x1 - x2^2)^2 / 2 + (x2 - 2)^2 / 2
@@ -18,7 +18,7 @@
 
 #include <stdlib.h>
 
-#define __COMPUTING_METHOD 2
+#define __COMPUTING_METHOD 1
 #if __COMPUTING_METHOD == 1
     #include "src/include/quasi_newton.h"
 #elif __COMPUTING_METHOD == 2

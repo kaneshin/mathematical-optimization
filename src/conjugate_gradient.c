@@ -4,7 +4,7 @@
  * File:        conjugate_gradient.c
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 08-Jul-2012.
+ * Last Change: 09-Jul-2012.
  * TODO:
  */
 
@@ -17,11 +17,18 @@
 #include "include/mymath.h"
 #include "include/print_message.h"
 
-static char *method_name = "Conjugate Gradient";
+static char method_name[64] = "Conjugate Gradient";
 
 static void
 default_conjugate_gradient_parameter(
     ConjugateGradientParameter *parameter
+);
+
+static int
+beta_fletcher_reeves_formula(
+    double *g,
+    double *g_temp,
+    int n
 );
 
 int
@@ -37,7 +44,7 @@ conjugate_gradient(
     int i, j, iter;
     long int memory_size;
     double *storage, *storage_x,
-           *d, *g, *x_temp, *g_temp, g_norm, *work, beta, g_norm_temp;
+           *d, *g, *x_temp, *g_temp, g_norm, *work, beta;
     NonLinearComponent component;
     ConjugateGradientParameter _conjugate_gradient_parameter;
     EvaluateObject evaluate_object;
@@ -138,13 +145,7 @@ conjugate_gradient(
 
         /* TODO: Optimization of computing of norm of g and g_temp
          * compute beta */
-        g_norm = 0.;
-        g_norm_temp = 0.;
-        for (i = 0; i < n; ++i) {
-            g_norm += g[i] * g[i];
-            g_norm_temp += g_temp[i] * g_temp[i];
-        }
-        beta = g_norm_temp / g_norm;
+        beta = beta_fletcher_reeves_formula(g, g_temp, n);
         /* update direction of descent */
         for (i = 0; i < n; ++i) {
             d[i] = -g_temp[i] + beta * d[i];
@@ -177,5 +178,23 @@ default_conjugate_gradient_parameter(
 ) {
     parameter->tolerance = 1.e-8;
     parameter->upper_iter = 5000;
+}
+
+static int
+beta_fletcher_reeves_formula(
+    double *g,
+    double *g_temp,
+    int n
+) {
+    int i;
+    double g_norm, g_norm_temp;
+
+    g_norm = g[0] * g[0];
+    g_norm_temp = g_temp[0] * g_temp[0];
+    for (i = 1; i < n; ++i) {
+        g_norm += g[i] * g[i];
+        g_norm_temp += g_temp[i] * g_temp[i];
+    }
+    return g_norm_temp / g_norm;
 }
 

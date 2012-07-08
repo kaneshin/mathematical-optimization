@@ -4,7 +4,7 @@
  * File:        quasi_newton.c
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 08-Jul-2012.
+ * Last Change: 09-Jul-2012.
  * TODO:
  *  Check elements of parameter
  *  Check each function of function_object
@@ -144,7 +144,7 @@ quasi_newton(
         storage_b = NULL;
     }
     /* allocate memory to storage for d, g, x_temp, g_temp, s, y and work */
-    if (NULL == (storage = (double *)malloc(memory_size * 8))) {
+    if (NULL == (storage = (double *)malloc(memory_size * 6))) {
         status = NON_LINEAR_OUT_OF_MEMORY;
         goto result;
     }
@@ -154,7 +154,7 @@ quasi_newton(
     g_temp = x_temp + n;
     s = g_temp + n;
     y = s + n;
-    work = y + n;
+    work = s;
 
     /* make sure that f and gf of this problem exist */
     if (NULL == function_object->function || NULL == function_object->gradient) {
@@ -213,12 +213,12 @@ quasi_newton(
             x_temp[i] = x[i] + component.alpha * d[i];
         }
         /* update g_temp = gradient(x_temp) */
-        if (NON_LINEAR_FUNCTION_OBJECT_NAN ==
-                evaluate_object.gradient(g_temp, x_temp, n, &component)) {
+        if (NON_LINEAR_FUNCTION_OBJECT_NAN
+                == evaluate_object.gradient(g_temp, x_temp, n, &component)) {
             status = NON_LINEAR_FUNCTION_NAN;
             goto result;
         }
-        /*TODO: compute g_norm */
+        /* compute g_norm */
         g_norm = infinity_norm(g_temp, n);
 
         print_iteration_info(iter, g_norm, &component);
