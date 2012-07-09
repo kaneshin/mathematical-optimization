@@ -6,8 +6,6 @@
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
  * Last Change: 09-Jul-2012.
  * TODO:
- *  Check elements of parameter
- *  Check each function of function_object
  */
 
 #include "include/quasi_newton.h"
@@ -181,8 +179,8 @@ quasi_newton(
     /* set the parameter of Quasi-Newton method */
     if (NULL == quasi_newton_parameter) {
         quasi_newton_parameter = &_quasi_newton_parameter;
-        default_quasi_newton_parameter(quasi_newton_parameter);
     }
+    default_quasi_newton_parameter(quasi_newton_parameter);
 
     /* set the formula for solving this problem */
     set_quasi_newton_formula(&quasi_newton_formula, quasi_newton_parameter);
@@ -256,10 +254,14 @@ quasi_newton(
                 break;
         }
 
+        /* INFO:
+         *  If you'd like to update vector, use memcpy from string.h.
+         *  Don't use For statement. It's slow.
+         * update x and g to new step */
         memcpy(x, x_temp, memory_size);
         memcpy(g, g_temp, memory_size);
     }
-
+    status = NON_LINEAR_NO_CONVERGENCE;
 result:
     print_result_info(status, iter, &component);
 
@@ -288,9 +290,13 @@ static void
 default_quasi_newton_parameter(
     QuasiNewtonParameter *parameter
 ) {
-    parameter->formula = 'h';
-    parameter->tolerance = 1.e-8;
-    parameter->upper_iter = 5000;
+    parameter->formula =
+        parameter->formula ? parameter->formula : 'h';
+    parameter->tolerance =
+        parameter->tolerance > lower_eps ? parameter->tolerance : lower_eps;
+    parameter->upper_iter = parameter->upper_iter > lower_iteration
+        && parameter->upper_iter < upper_iteration
+        ? parameter->upper_iter : upper_iteration;
 }
 
 static void
@@ -323,9 +329,11 @@ direction_search_bfgs_B_formula(
 ) {
     int i , status;
 
-    for (i = 0; i < n; ++i) g[i] = -g[i];
+    for (i = 0; i < n; ++i)
+        g[i] = -g[i];
     status = successive_over_relaxation(B, d, g, n, 1.e-7, 0.5);
-    for (i = 0; i < n; ++i) g[i] = -g[i];
+    for (i = 0; i < n; ++i)
+        g[i] = -g[i];
     return status;
 }
 
@@ -344,14 +352,16 @@ update_matrix_bfgs_B_formula(
         for (j = 0, Bsi = 0.; j < n; j++) {
             Bsi += B[i][j] * s[j];
         }
-        if (Bsi != Bsi) return NON_LINEAR_FUNCTION_NAN;
+        if (Bsi != Bsi)
+            return NON_LINEAR_FUNCTION_NAN;
         Bs[i] = Bsi;
     }
     for (i = 1, sBs = s[0] * Bs[0], sy = s[0] * y[0]; i < n; ++i) {
         sBs += s[i] * Bs[i];
         sy += s[i] * y[i];
     }
-    if (sBs != sBs || sy != sy) return NON_LINEAR_FUNCTION_NAN;
+    if (sBs != sBs || sy != sy)
+        return NON_LINEAR_FUNCTION_NAN;
     if (sy > 0) {
         for (i = 0; i < n; ++i) {
             for (j = 0; j < n; j++) {
@@ -376,7 +386,8 @@ direction_search_bfgs_H_formula(
         for (j = 0, Hg = 0.; j < n; j++) {
             Hg -= H[i][j] * g[j];
         }
-        if (Hg != Hg) return NON_LINEAR_FUNCTION_NAN;
+        if (Hg != Hg)
+            return NON_LINEAR_FUNCTION_NAN;
         d[i] = Hg;
     }
     return NON_LINEAR_SATISFIED;
@@ -397,19 +408,21 @@ update_matrix_bfgs_H_formula(
         for (j = 0, Hyi = 0.; j < n; j++) {
             Hyi += H[i][j] * y[j];
         }
-        if (Hyi != Hyi) return NON_LINEAR_FUNCTION_NAN;
+        if (Hyi != Hyi)
+            return NON_LINEAR_FUNCTION_NAN;
         Hy[i] = Hyi;
     }
     for (i = 1, yHy = y[0] * Hy[0], sy = s[0] * y[0]; i < n; ++i) {
         yHy += y[i] * Hy[i];
         sy += s[i] * y[i];
     }
-    if (yHy != yHy || sy != sy) return NON_LINEAR_FUNCTION_NAN;
+    if (yHy != yHy || sy != sy)
+        return NON_LINEAR_FUNCTION_NAN;
     if (sy > 0) {
         for (i = 0; i < n; ++i) {
             for (j = 0; j < n; j++) {
                 H[i][j] += - (Hy[i] * s[j] + s[i] * Hy[j]) / sy
-                                + (1 + yHy / sy) * s[i] * s[j] / sy ;
+                    + (1 + yHy / sy) * s[i] * s[j] / sy ;
             }
         }
         return NON_LINEAR_SATISFIED;

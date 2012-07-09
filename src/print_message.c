@@ -52,6 +52,9 @@ print_result_info(
         case NON_LINEAR_FAILED:
             printf("Failed: FAILED\n");
             break;
+        case NON_LINEAR_NO_CONVERGENCE:
+            printf("Failed: No convergence\n");
+            break;
         case NON_LINEAR_LINE_SEARCH_FAILED:
             printf("Failed: Line Search is failed\n");
             break;

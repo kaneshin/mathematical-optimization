@@ -52,6 +52,7 @@ main(int argc, char* argv[]) {
     double *x, **b;
     FunctionObject Function;
     LineSearchParameter line_search_parameter;
+    QuasiNewtonParameter quasi_newton_parameter;
 
     n = 2;
     x = (double *)malloc(sizeof(double) * n);
@@ -80,6 +81,9 @@ main(int argc, char* argv[]) {
 #ifdef OPTIMIZATION_LINE_SEARCH_BACKTRACKING_STRONG_WOLFE_H
     default_backtracking_strong_wolfe_parameter(&line_search_parameter);
 #endif
+    quasi_newton_parameter.formula = 'b';
+    quasi_newton_parameter.tolerance = 1.e-8;
+    // quasi_newton_parameter.upper_iter = 5000;
 
     /* int
      * quasi_newton(
@@ -90,7 +94,7 @@ main(int argc, char* argv[]) {
      *     line_search_t line_search,
      *     LineSearchParameter *line_search_parameter,
      *     QuasiNewtonParameter *quasi_newton_parameter
-     * )
+     * );
      * int
      * conjugate_gradient(
      *     double *x,
@@ -130,7 +134,8 @@ main(int argc, char* argv[]) {
 #endif
             ,
             &line_search_parameter,
-            NULL
+            // NULL
+            &quasi_newton_parameter
     );
 
     if (NULL != x) {

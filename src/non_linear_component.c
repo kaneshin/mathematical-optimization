@@ -4,10 +4,14 @@
  * File:        non_linear_component.c
  * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 08-Jul-2012.
+ * Last Change: 09-Jul-2012.
  */
 
 #include "include/non_linear_component.h"
+
+const double lower_eps = 1.e-8;
+const int lower_iteration = 1;
+const int upper_iteration = 1000;
 
 static int
 function(
@@ -39,12 +43,12 @@ initialize_non_linear_component(
     EvaluateObject *evaluate_object,
     NonLinearComponent *component
 ) {
-    component->method_name      = method_name;
-    component->iteration_f      = 0;
-    component->iteration_g      = 0;
-    component->f                = 0.;
-    component->alpha            = 0.;
-    component->function_object  = function_object;
+    component->method_name = method_name;
+    component->iteration_f = 0;
+    component->iteration_g = 0;
+    component->f = 0.;
+    component->alpha = 0.;
+    component->function_object = function_object;
     evaluate_object->function = function;
     evaluate_object->gradient = gradient;
     evaluate_object->function_gradient = function_gradient;

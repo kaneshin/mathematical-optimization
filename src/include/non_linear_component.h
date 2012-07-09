@@ -10,6 +10,10 @@
 #ifndef OPTIMIZATION_NON_LINEAR_COMPONENT_H
 #define OPTIMIZATION_NON_LINEAR_COMPONENT_H
 
+extern const double lower_eps;
+extern const int lower_iteration;
+extern const int upper_iteration;
+
 enum NonLinearFunctionStatus {
     NON_LINEAR_FUNCTION_OBJECT_NAN = -1,
     NON_LINEAR_FUNCTION_OBJECT_SATISFIED = 0,
@@ -22,6 +26,7 @@ enum NonLinearStatus {
     NON_LINEAR_NO_PARAMETER,
     NON_LINEAR_SATISFIED = 0,
     NON_LINEAR_FAILED,
+    NON_LINEAR_NO_CONVERGENCE,
     NON_LINEAR_LINE_SEARCH_FAILED,
     NON_LINEAR_NOT_UPDATE,
 };
