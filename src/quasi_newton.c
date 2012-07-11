@@ -2,9 +2,9 @@
  * vim:set ts=8 sts=4 sw=4 tw=0:
  *
  * File:        quasi_newton.c
- * Version:     0.2.0
+ * Version:     0.1.0
  * Maintainer:  Shintaro Kaneko <kaneshin0120@gmail.com>
- * Last Change: 09-Jul-2012.
+ * Last Change: 12-Jul-2012.
  * TODO:
  */
 
